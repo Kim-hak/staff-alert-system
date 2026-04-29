@@ -1,5 +1,19 @@
 @import './base.css';
 
+:root {
+  --primary-teal: #52a8b8;
+  --dark-teal: #3d7e8a;
+}
+
+body {
+  background: linear-gradient(135deg, #e0f2f1 0%, #b2ebf2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
 #app {
   max-width: 1280px;
   margin: 0 auto;
