@@ -1,8 +1,9 @@
 @import './base.css';
 
 :root {
-  --primary-teal: #52a8b8;
-  --dark-teal: #3d7e8a;
+  --primary-color: #84A98C;
+  --secondary-color: #52796F;
+ 
 }
 
 body {
