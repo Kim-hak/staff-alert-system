@@ -22,8 +22,9 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import Sidebar from './Sidebar.vue'
-import Navbar from './Navbar.vue'
+import Sidebar from '../comment/Sidebar.vue'
+import Navbar from '../comment/Navbar.vue'
+
 
 const sidebarOpen = ref(true)
 const isMobile = ref(false)

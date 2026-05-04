@@ -1,3 +1,4 @@
+
 <template>
   <header class="topbar d-flex justify-content-between align-items-center px-3">
     <button class="toggle-btn" @click="$emit('toggle')">
