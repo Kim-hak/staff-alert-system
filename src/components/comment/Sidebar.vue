@@ -8,17 +8,19 @@
   >
     <div class="sidebar-brand text-center py-4">
       <div class="brand-icon mb-2">
-        <i class="bi bi-bell-fill text-white fs-3"></i>
+        <img src="../../assets/file_00000000c7007207a759e14e013b3f54.png" class="img-fluid"  style="width: 60px; height: 60px; " alt="AlertGo">
       </div>
       <h4 class="brand-name text-white">AlertGo</h4>
     </div>
 
     <div class="sidebar-nav px-3">
-      <a class="nav-item-custom active"><i class="bi bi-grid-fill"></i> Dashboard</a>
-      <a class="nav-item-custom"><i class="bi bi-currency-dollar"></i> Salary History</a>
-      <a class="nav-item-custom"><i class="bi bi-bell"></i> Notifications</a>
-      <a class="nav-item-custom"><i class="bi bi-person"></i> Profile</a>
-      <a class="nav-item-custom"><i class="bi bi-send"></i> Telegram</a>
+      <a class="nav-item-custom active"><i class="bi bi-grid-fill"></i> ផ្ទាំងគ្រប់គ្រង</a>
+      <a class="nav-item-custom"><i class="bi bi-person-fill"></i>អ្នកប្រើប្រាស់</a>
+
+      <a class="nav-item-custom"><i class="bi bi-people-fill"></i>ក្រុម</a>
+      <a class="nav-item-custom"><i class="bi bi-bell"></i>របាយការណ៍</a>
+      <a class="nav-item-custom"><i class="bi bi-bell-fill"></i> ការជូនដំណឹង</a>
+        <a class="nav-item-custom"><i class="bi bi-person-fill"></i> ប្រវត្តិរូប</a>
     </div>
 
     <div class="sidebar-footer mt-auto p-3 text-white">
