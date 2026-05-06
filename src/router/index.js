@@ -1,4 +1,5 @@
 import Homeview from '@/views/profile/Homeview.vue'
+import StaffDashboardView from '@/views/staff/StaffDashboardView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -9,7 +10,13 @@ const router = createRouter({
       path: '/',
       name: 'homeview',
       component: Homeview,
+    },
+    {
+      path: '/staffdashboardview',
+      name: 'staffdashboardview',
+      component: StaffDashboardView,
     }
+
   ],
 })
 
