@@ -15,7 +15,7 @@ const router = createRouter({
 
     {
       path: '/staff',
-      component: StaffdashboardView,
+      component: DashboardLayout,
       children: [
         {
           path: '/staffdashboardView',

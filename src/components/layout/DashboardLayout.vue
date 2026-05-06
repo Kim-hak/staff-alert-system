@@ -22,8 +22,8 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import Sidebar from '../comment/Sidebar.vue'
-import Navbar from '../comment/Navbar.vue'
+import Sidebar from '@/components/comment/Sidebar.vue'
+import Navbar from '@/components/comment/Navbar.vue'
 
 
 const sidebarOpen = ref(true)
