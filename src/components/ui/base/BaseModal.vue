@@ -2,8 +2,8 @@
   <div class="modal fade show d-block" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">{{ title }}</h5>
+        <div class="modal-header" style="background-color: var(--secondary-color)">
+          <h5 class="modal-title text-white">{{ title }}</h5>
           <button
             type="button"
             class="btn-close"
@@ -13,7 +13,7 @@
           ></button>
         </div>
         <div class="modal-body">
-          <!-- <p>{{ description }}</p> -->`
+          <!-- <p>{{ description }}</p> -->
            <slot name="body"></slot>
         </div>
 
