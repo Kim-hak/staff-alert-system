@@ -6,8 +6,7 @@
       <Navbar @toggle="toggleSidebar" />
 
       <main class="p-4">
-     
-        <h2></h2>
+        <RouterView />
       </main>
     </div>
 

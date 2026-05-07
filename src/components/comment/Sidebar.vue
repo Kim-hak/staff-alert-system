@@ -14,11 +14,18 @@
     </div>
 
     <div class="sidebar-nav px-3">
-      <a class="nav-item-custom active"><i class="bi bi-grid-fill"></i> Dashboard</a>
-      <a class="nav-item-custom"><i class="bi bi-currency-dollar"></i> Salary History</a>
-      <a class="nav-item-custom"><i class="bi bi-bell"></i> Notifications</a>
-      <a class="nav-item-custom"><i class="bi bi-person"></i> Profile</a>
-      <a class="nav-item-custom"><i class="bi bi-send"></i> Telegram</a>
+      <RouterLink :to="{ name: 'staffDashboard' }" class="nav-item-custom">
+        <i class="bi bi-grid-fill"></i> Dashboard
+      </RouterLink>
+      <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
+        <i class="bi bi-currency-dollar"></i> Salary History
+      </RouterLink>
+      <RouterLink :to="{ name: 'staffFeedback' }" class="nav-item-custom">
+        <i class="bi bi-chat-square-text"></i> Feedback
+      </RouterLink>
+      <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
+        <i class="bi bi-person"></i> Profile
+      </RouterLink>
     </div>
 
     <div class="sidebar-footer mt-auto p-3 text-white">
@@ -34,6 +41,8 @@
 </template>
 
 <script setup>
+import { RouterLink } from 'vue-router'
+
 defineProps({
   isOpen: Boolean,
   isMobile: Boolean
@@ -65,7 +74,7 @@ defineProps({
   cursor: pointer;
   text-decoration: none;
 }
-.nav-item-custom:hover, .nav-item-custom.active {
+.nav-item-custom:hover, .nav-item-custom.router-link-active {
   background: rgba(255,255,255,0.2);
   color: white;
 }
