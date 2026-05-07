@@ -1,5 +1,5 @@
 <template>
-
+<h1>Staff Dashboard</h1>
   <!-- Open button -->
   <button class="btn btn-primary" @click="showModal = true">
     Open Modal
