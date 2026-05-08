@@ -10,7 +10,7 @@ import NotFoundView from "@/views/shared/NotFoundView.vue";
 // 2. Auth Views (សម្រាប់ Login / Forget Password)
 // ==========================================
 // ចំណាំ: សូមប្តូរឈ្មោះ File តាមជាក់ស្តែងនៅក្នុង Folder auth របស់អ្នក
-// import LoginView from '@/views/auth/LoginView.vue'
+import LoginView from "@/views/auth/LoginView.vue";
 
 // ==========================================
 // 3. Admin Views
@@ -50,12 +50,11 @@ const router = createRouter({
     },
 
     // --- Auth Routes (មិនប្រើ Dashboard Layout ទេ) ---
-    /* {
-      path: '/login',
-      name: 'login',
-      component: LoginView
+    {
+      path: "/login",
+      name: "login",
+      component: LoginView,
     },
-    */
 
     // --- ADMIN Routes ---
     {
