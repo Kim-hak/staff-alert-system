@@ -24,8 +24,10 @@ import SalaryManagementView from "@/views/admin/SalaryManagementView.vue";
 // ==========================================
 // 4. Manager Views (សូមប្តូរឈ្មោះតាម File ជាក់ស្តែង)
 // ==========================================
-// import ManagerDashboardView from '@/views/manager/ManagerDashboardView.vue'
-// import MyGroupsView from '@/views/manager/MyGroupsView.vue'
+import ManagerDashboardView from '@/views/manager/ManagerDashboardView.vue'
+import MyGroupsView from '@/views/manager/MyGroupsView.vue'
+import MyReportsView from "@/views/manager/MyReportsView.vue";
+import MyStaffsView from "@/views/manager/MyStaffsView.vue";
 
 // ==========================================
 // 5. Staff Views
@@ -84,10 +86,14 @@ const router = createRouter({
       component: DashboardLayout,
       redirect: { name: "managerDashboard" },
       children: [
-        /* សូម Uncomment ពេលអ្នកបង្កើត File ទាំងនេះរួច
+        // សូម Uncomment ពេលអ្នកបង្កើត File ទាំងនេះរួច
         { path: 'dashboard', name: 'managerDashboard', component: ManagerDashboardView },
-        { path: 'groups', name: 'managerGroups', component: MyGroupsView },
-        */
+        { path: 'managerGroups', name: 'managersGroups', component: MyGroupsView },
+        { path: 'managerReports', name: 'managerReports', component: MyReportsView },
+        { path: 'managerStaffs', name: 'managerStaffs', component: MyStaffsView },
+
+        
+        
       ],
     },
 
