@@ -2,8 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&display=swap');
 
 :root {
-  --primary-color: #84A98C;
-  --secondary-color: #52796F;
+  --primary-color: #52796F;
+  --secondary-color: #84A98C;
   --bs-body-font-family: 'Kantumruy Pro', sans-serif;
  
 }
