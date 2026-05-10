@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
-=======
-import { createRouter, createWebHistory } from "vue-router";
-
->>>>>>> 3047df3811000b1ce6a0a11be996512e324e56ca
 // ==========================================
 // 1. Layouts & Shared Views
 // ==========================================
@@ -15,13 +10,9 @@ import NotFoundView from "@/views/shared/NotFoundView.vue";
 // 2. Auth Views (សម្រាប់ Login / Forget Password)
 // ==========================================
 // ចំណាំ: សូមប្តូរឈ្មោះ File តាមជាក់ស្តែងនៅក្នុង Folder auth របស់អ្នក
-<<<<<<< HEAD
 // import LoginView from '@/views/auth/LoginView.vue'
 // import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue'
 // import ResetPasswordView from '@/views/auth/ResetPasswordView.vue'
-=======
-import LoginView from "@/views/auth/LoginView.vue";
->>>>>>> 3047df3811000b1ce6a0a11be996512e324e56ca
 
 // ==========================================
 // 3. Admin Views
@@ -57,7 +48,6 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     // --- Default Route ---
-<<<<<<< HEAD
    
 
     // --- Auth Routes (មិនប្រើ Dashboard Layout ទេ) ---
@@ -88,19 +78,6 @@ const router = createRouter({
     component: () => import("@/views/auth/ChangePasswordView.vue"),
     meta: { requiresAuth: true },
   },
-=======
-    {
-      path: "/",
-      redirect: { name: "login" }, // គួរតែបាញ់ទៅ Login ជាមុន
-    },
-
-    // --- Auth Routes (មិនប្រើ Dashboard Layout ទេ) ---
-    {
-      path: "/login",
-      name: "login",
-      component: LoginView,
-    },
->>>>>>> 3047df3811000b1ce6a0a11be996512e324e56ca
 
     // --- ADMIN Routes ---
     {
@@ -175,7 +152,6 @@ const router = createRouter({
       component: NotFoundView,
     },
   ],
-<<<<<<< HEAD
 })
 router.beforeEach(async (to, from) => {
   const authStore = useAuthStore();
@@ -220,8 +196,3 @@ router.beforeEach(async (to, from) => {
   }
 });
 export default router
-=======
-});
-
-export default router;
->>>>>>> 3047df3811000b1ce6a0a11be996512e324e56ca
