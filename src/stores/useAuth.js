@@ -1,73 +1,103 @@
 import { defineStore } from "pinia";
 import api from "@/api/api";
 import { computed, ref } from "vue";
-export const useAuthStore = defineStore('auth', () =>{
 
-// Stat management 
-let token = ref(localStorage.getItem('token'));
-let message_error = ref('');
-let profile = ref(null);
+export const useAuthStore = defineStore('auth', () => {
 
-let isLogined = computed(()=>{
-    return token.value;
-});
+  // State Management
+  const token = ref(localStorage.getItem('token'));
+  const message_error = ref('');
+  const profile = ref(null);
 
+  const isLogined = computed(() => {
+    return !!token.value;
+  });
 
-// Action 
-const login = async(data) =>{
-    try{
-        let res = await api.post('auth/login', data);
-        token.value = res.data.data.token;
-        localStorage.setItem('token', token.value);
-    }catch(error){    
-        console.error(error.response)
-        message_error.value = error.response.data.message
+  // Actions 
+  const login = async (data) => {
+    try {
+      message_error.value = '';
+      const res = await api.post('auth/login', data);
+      token.value = res.data.data.token;
+      localStorage.setItem('token', token.value);
+      
+      await fetchProfile(); 
+    } catch (error) {    
+      message_error.value = error.response?.data?.message || 'Login failed';
+      throw error; 
     }
-}
+  }
 
-const fetchProfile = async () =>{
-    let res = await api.get('auth/profile');
-    profile.value = res.data.data
-}
-const logout = async ()=>{
-    try{
-        await api.delete('auth/logout');
-    }catch(error){
-        console.error(error.response)
+  const fetchProfile = async () => {
+    try {
+      const res = await api.get('auth/profile');
+      profile.value = res.data.data;
+    } catch (error) {
+      // If profile fetch fails (like a 401), we should clear everything
+      if (error.response?.status === 401) {
+        logoutLocal();
+      }
+      throw error;
+    }
+  }
+
+  // Local logout logic (clearing state without necessarily calling the API)
+  const logoutLocal = () => {
+    localStorage.removeItem('token');
+    token.value = null;
+    profile.value = null;
+  };
+
+  const logout = async () => {
+    try {
+      await api.delete('auth/logout');
+    } catch (error) {
+      console.error("Logout error:", error.response);
     } finally {
-        localStorage.removeItem('token');// clear item token from localstorage
-        token.value = null;// reset variable token to null
-        profile.value = null;// reset variable profile to null
+      logoutLocal();
     }
-}
+  }
 
-const forgotPassword = async (email) => {
+  const forgotPassword = async (email) => {
     try {
-        return await api.post('auth/forget-password', { email });
+      // The API likely expects { email: "..." }
+      return await api.post('auth/forget-password', { email });
     } catch (error) {
-        console.error(error.response || error);
-        throw error;
+      throw error.response?.data || error;
     }
-}
+  }
 
-const resetPassword = async (payload) => {
+  // UPDATED: Accepting token and newPassword separately to match ResetPasswordView
+  const resetPassword = async (tokenValue, newPassword) => {
     try {
-        return await api.post('auth/reset-password', payload);
+      const res = await api.post('auth/reset-password', { 
+        token: tokenValue, 
+        newPassword: newPassword 
+      });
+      return res.data;
     } catch (error) {
-        console.error(error.response || error);
-        throw error;
+      throw error.response?.data || error;
     }
-}
+  }
 
-const changePassword = async (payload) => {
+  const changePassword = async (payload) => {
     try {
-        return await api.put('auth/change-password', payload);
+      return await api.put('auth/change-password', payload);
     } catch (error) {
-        console.error(error.response || error);
-        throw error;
+      throw error.response?.data || error;
     }
-}
+  }
 
-// Return 
-return {token,isLogined,message_error,profile, login, fetchProfile, logout, forgotPassword, resetPassword, changePassword}
-})
+  return {
+    token,
+    isLogined,
+    message_error,
+    profile,
+    login,
+    fetchProfile,
+    logout,
+    forgotPassword,
+    resetPassword,
+    changePassword
+  }
+});

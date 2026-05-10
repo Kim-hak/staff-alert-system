@@ -156,17 +156,25 @@ function validationForm(){
 }
 
 async function handleLogin() {
-  if(!validationForm()) return;
+  if (!validationForm()) return;
+  
   try {
     loading.value = true;
     await authStore.login(form);
     
-    // Check if login was successful by checking if token exists
-    if (authStore.token) {
-      router.push('/staff/dashboard');
+    if (authStore.token && authStore.profile) {
+      const roleId = authStore.profile.role.id;
+
+      if (roleId === 1) {
+        router.replace({ name: 'adminDashboard' });
+      } else if (roleId === 2) {
+        router.push({ name: 'managerDashboard' });
+      } else if (roleId === 3) {
+        router.push({ name: 'staffDashboard' });
+      }
     }
   } catch (error) {
-    console.error('Login error:', error)
+    // Error is handled by authStore.message_error
   } finally {
     loading.value = false;
   }
