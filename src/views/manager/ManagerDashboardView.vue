@@ -1,5 +1,6 @@
 <template>
   <div class="space-y-8">
+    
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-normal text-gray-900 mb-2">Dashboard</h1>
@@ -8,49 +9,53 @@
       </p>
     </div>
 
-    <!-- Manager Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- Stats -->
+    <div class="row g-4">
 
-      <!-- Staff -->
-      <div
-        class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm"
-      >
-        <p class="text-sm text-gray-400 mb-1 uppercase">
-          My Staff
-        </p>
-        <h2 class="text-3xl text-gray-900">24</h2>
+      <div class="col-md-6 col-xl-3">
+        <StatCard
+          title="My Staff"
+          :value="24"
+          icon="bi bi-people"
+          iconColor="text-primary"
+          bgColor="bg-light-blue"
+        />
       </div>
 
-      <!-- Groups -->
-      <div
-        class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm"
-      >
-        <p class="text-sm text-gray-400 mb-1 uppercase">
-          My Groups
-        </p>
-        <h2 class="text-3xl text-gray-900">3</h2>
+      <div class="col-md-6 col-xl-3">
+        <StatCard
+          title="My Groups"
+          :value="3"
+          icon="bi bi-diagram-3"
+          iconColor="text-success"
+          bgColor="bg-light-green"
+        />
       </div>
 
-      <!-- Reports -->
-      <div
-        class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm"
-      >
-        <p class="text-sm text-gray-400 mb-1 uppercase">
-          Reports
-        </p>
-        <h2 class="text-3xl text-gray-900">12</h2>
+      <div class="col-md-6 col-xl-3">
+        <StatCard
+          title="Reports"
+          :value="12"
+          icon="bi bi-file-earmark-text"
+          iconColor="text-warning"
+          bgColor="bg-light-orange"
+        />
       </div>
 
-      <!-- Notifications -->
-      <div
-        class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm"
-      >
-        <p class="text-sm text-gray-400 mb-1 uppercase">
-          Notifications
-        </p>
-        <h2 class="text-3xl text-gray-900">5</h2>
+      <div class="col-md-6 col-xl-3">
+        <StatCard
+          title="Notifications"
+          :value="5"
+          icon="bi bi-bell"
+          iconColor="text-danger"
+          bgColor="bg-light-danger"
+        />
       </div>
 
     </div>
   </div>
 </template>
+
+<script setup>
+import StatCard from '@/components/ui/base/StatCard.vue';
+</script>
