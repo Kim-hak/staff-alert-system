@@ -74,9 +74,9 @@
         <RouterLink :to="{ name: 'staffFeedback' }" class="nav-item-custom">
           <i class="bi bi-bell-fill"></i> សេចក្តីជូនដំណឹង
         </RouterLink>
-        <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
+        <!-- <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
           <i class="bi bi-person"></i> ប្រវត្តិរូប
-        </RouterLink>
+        </RouterLink> -->
         <a href="" class="nav-item-custom">
           <i class="bi bi-telegram"></i> Telegram
         </a>
