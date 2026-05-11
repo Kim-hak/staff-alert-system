@@ -10,10 +10,10 @@
             <div class="col-lg-4">
               <div class="card border-0 shadow-sm p-4 text-center rounded-4">
                 <div class="avatar-lg mx-auto mb-3">S</div>
-                <h4 class="fw-bold mb-1">Admin User</h4>
+                <h4 class="fw-bold mb-1">{{ userRole }}</h4>
                 <p class="text-muted small">admin@example.com</p>
                 <div class="mb-4">
-                  <span class="badge-custom">Admin</span>
+                  <span class="badge-custom">{{userRole}}</span>
                 </div>
                 
                 <div class="d-grid gap-2">
@@ -53,7 +53,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { useAuthStore } from '@/stores/useAuth';
+import { computed, ref } from 'vue';
+const authStore = useAuthStore()
 
 const profileInfo = ref([
   { label: 'Full Name', value: 'Admin User', icon: 'bi-person' },
@@ -61,6 +63,15 @@ const profileInfo = ref([
   { label: 'Current Salary', value: '$75,000', icon: 'bi-currency-dollar' },
   { label: 'Account Status', value: 'Active', icon: 'bi-shield-check', type: 'status' },
 ]);
+
+const userRole = computed(() => {
+  switch (authStore.profile?.role?.id) {
+    case 1: return 'Admin'
+    case 2: return 'Manager'
+    case 3: return 'Staff'
+    default: return 'User'
+  }
+})
 </script>
 
 <style scoped>
