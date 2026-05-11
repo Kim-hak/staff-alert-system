@@ -15,79 +15,9 @@
         <StatCard title="Profile Status" :value="status" :value-color="status === 'ACTIVATED' ? '#2e7d32' : '#c62828'"
           icon="bi bi-person-check" icon-color="text-primary" bg-color="bg-light-blue" />
       </div>
-
-      <div class="col-12 col-md-4">
-        <StatCard title="Notifications" :value="notiCount" value-color="#f57f17" icon="bi bi-bell"
-          icon-color="text-warning" bg-color="bg-light-orange" />
-      </div>
     </div>
 
-    <div class="row g-4">
-
-      <div class="col-12 col-lg-8">
-        <BaseCard title="Recent Feedback & Reports">
-          <BaseTable :columns="reportColumns" :data="recentReports" :loading="isLoadingReports">
-            <template #status="{ item }">
-              <BaseBadge :type="item.status === 'REVIEWED' ? 'success' : 'warning'">
-                {{ item.status }}
-              </BaseBadge>
-            </template>
-
-            <template #actions="{ item }">
-              <button class="btn btn-sm btn-light text-primary" @click="viewReport(item)" title="View Details">
-                <i class="bi bi-eye"></i> View
-              </button>
-            </template>
-          </BaseTable>
-
-          <div class="text-end mt-3">
-            <router-link to="/staff/feedback" class="text-decoration-none text-success small fw-medium">
-              View All Reports <i class="bi bi-arrow-right"></i>
-            </router-link>
-          </div>
-        </BaseCard>
-      </div>
-
-      <div class="col-12 col-lg-4">
-        <BaseCard title="Recent Notifications">
-          <template #headerAction>
-            <span class="badge bg-danger rounded-pill px-2 py-1" style="font-size: 0.75rem;">{{ notiCount }} New</span>
-          </template>
-
-          <div class="notification-list mt-2">
-            <div class="d-flex align-items-start border-bottom pb-3 mb-3">
-              <div class="bg-light-orange p-2 rounded-circle me-3 d-flex align-items-center justify-content-center"
-                style="width: 40px; height: 40px;">
-                <i class="bi bi-gift text-warning fs-5"></i>
-              </div>
-              <div>
-                <p class="mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Happy Work Anniversary!</p>
-                <p class="text-muted small mb-0">2 hours ago</p>
-              </div>
-            </div>
-
-            <div class="d-flex align-items-start border-bottom pb-3 mb-3">
-              <div class="bg-light-green p-2 rounded-circle me-3 d-flex align-items-center justify-content-center"
-                style="width: 40px; height: 40px;">
-                <i class="bi bi-file-earmark-text text-success fs-5"></i>
-              </div>
-              <div>
-                <p class="mb-1 fw-bold text-dark" style="font-size: 0.9rem;">New Feedback Submitted</p>
-                <p class="text-muted small mb-0">Yesterday at 10:30 AM</p>
-              </div>
-            </div>
-
-          </div>
-
-          <router-link to="/staff/notifications" class="w-100 text-decoration-none mt-2 d-block">
-            <BaseButton variant="outline" fullWidth>
-              View All <i class="bi bi-arrow-right ms-1"></i>
-            </BaseButton>
-          </router-link>
-        </BaseCard>
-      </div>
-
-    </div>
+   
   </div>
 </template>
 
@@ -96,10 +26,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 // Import Base Components
 import StatCard from '@/components/ui/base/StatCard.vue';
-import BaseCard from '@/components/ui/base/BaseCard.vue';
-import BaseTable from '@/components/ui/base/BaseTable.vue';
-import BaseBadge from '@/components/ui/base/BaseBadge.vue';
-import BaseButton from '@/components/ui/base/BaseButton.vue';
+
 
 // *ចំណាំ: អ្នកត្រូវដូរ Path Axios ទៅតាមរបស់ពិតរបស់អ្នក*
 // import apiClient from '@/api/axios'; 

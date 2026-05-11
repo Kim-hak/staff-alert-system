@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
+import { getRoleKey } from '@/utils/roles'
 // ==========================================
 // 1. Layouts & Shared Views
 // ==========================================
@@ -36,9 +37,10 @@ import MyStaffsView from "@/views/manager/MyStaffsView.vue";
 // ==========================================
 import StaffDashboardView from "@/views/staff/StaffDashboardView.vue";
 import SalaryView from "@/views/staff/SalaryView.vue";
-import FeedbackView from "@/views/staff/FeedbackView.vue";
 import ProfileView from "@/views/staff/ProfileView.vue"; // នេះជា Profile របស់ Staff
 import AdminProfile from '@/views/admin/AdminProfile.vue';
+import Notification from '@/views/staff/NotificationView.vue';
+
 
 // ==========================================
 // 6. Global Profile View (សម្រាប់ Admin/Manager)
@@ -132,7 +134,8 @@ const router = createRouter({
           component: StaffDashboardView,
         },
         { path: "salary", name: "staffSalary", component: SalaryView },
-        { path: "feedback", name: "staffFeedback", component: FeedbackView },
+        { path: "notification", name: "staffNotification", component: Notification },
+        { path: "profile", name: "staffProfile", component: ProfileView },
        
       ],
     },
@@ -167,34 +170,34 @@ router.beforeEach(async (to, from) => {
     }
   }
 
-  const roleId = authStore.profile?.role?.id;
+  const roleKey = getRoleKey(authStore.profile);
 
   // 2. STOP UNAUTHORIZED ACCESS TO ADMIN AREA
-  if (to.path.startsWith('/admin') && roleId !== 1) {
+  if (to.path.startsWith('/admin') && roleKey !== 'admin') {
     // If not Admin, send them to their respective dashboard
-    if (roleId === 2) return { name: 'managerDashboard' };
+    if (roleKey === 'manager') return { name: 'managerDashboard' };
     return { name: 'staffDashboard' }; 
   }
 
   // 3. STOP UNAUTHORIZED ACCESS TO MANAGER AREA (Role 2)
-  if (to.path.startsWith('/manager') && roleId !== 2) {
+  if (to.path.startsWith('/manager') && roleKey !== 'manager') {
     // If not Manager, send them to their respective dashboard
-    if (roleId === 1) return { name: 'adminDashboard' };
+    if (roleKey === 'admin') return { name: 'adminDashboard' };
     return { name: 'staffDashboard' };
   }
 
   // 4. STOP UNAUTHORIZED ACCESS TO STAFF AREA (Role 3)
-  if (to.path.startsWith('/staff') && roleId !== 3) {
+  if (to.path.startsWith('/staff') && roleKey !== 'staff') {
      // If not Staff, send them back
-     if (roleId === 1) return { name: 'adminDashboard' };
-     if (roleId === 2) return { name: 'managerDashboard' };
+     if (roleKey === 'admin') return { name: 'adminDashboard' };
+     if (roleKey === 'manager') return { name: 'managerDashboard' };
   }
 
   // 5. REDIRECT LOGGED-IN USERS AWAY FROM LOGIN PAGE
   if (to.name === 'Login' && authStore.isLogined) {
-    if (roleId === 1) return { name: 'adminDashboard' };
-    if (roleId === 2) return { name: 'managerDashboard' };
-    if (roleId === 3) return { name: 'staffDashboard' };
+    if (roleKey === 'admin') return { name: 'adminDashboard' };
+    if (roleKey === 'manager') return { name: 'managerDashboard' };
+    if (roleKey === 'staff') return { name: 'staffDashboard' };
   }
 });
 export default router

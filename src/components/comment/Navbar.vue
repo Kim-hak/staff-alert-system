@@ -17,6 +17,7 @@
 <script setup>
 import { useAuthStore } from '@/stores/useAuth'
 import { computed } from 'vue'
+import { getRoleKey } from '@/utils/roles'
 
 const authStore = useAuthStore()
 
@@ -30,10 +31,10 @@ const userName = computed(() => {
 })
 
 const userRole = computed(() => {
-  switch (authStore.profile?.role?.id) {
-    case 1: return 'Admin'
-    case 2: return 'Manager'
-    case 3: return 'Staff'
+  switch (getRoleKey(authStore.profile)) {
+    case 'admin': return 'Admin'
+    case 'manager': return 'Manager'
+    case 'staff': return 'Staff'
     default: return 'User'
   }
 })

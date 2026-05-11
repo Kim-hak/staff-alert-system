@@ -71,12 +71,12 @@
         <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
           <i class="bi bi-currency-dollar"></i> ប្រាក់ខែ
         </RouterLink>
-        <RouterLink :to="{ name: 'staffFeedback' }" class="nav-item-custom">
+        <RouterLink :to="{ name: 'staffNotification' }" class="nav-item-custom">
           <i class="bi bi-bell-fill"></i> សេចក្តីជូនដំណឹង
         </RouterLink>
-        <a class="nav-item-custom">
+        <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
           <i class="bi bi-person"></i> ប្រវត្តិរូប
-        </a>
+        </RouterLink>
         <a href="" class="nav-item-custom">
           <i class="bi bi-telegram"></i> Telegram
         </a>
@@ -100,6 +100,7 @@
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
 import { computed } from 'vue'
+import { getRoleKey } from '@/utils/roles'
 
 const authStore = useAuthStore()
 
@@ -108,7 +109,15 @@ defineProps({
   isMobile: Boolean
 })
 
-const roleId = computed(() => authStore.profile?.role?.id)
+const roleKey = computed(() => getRoleKey(authStore.profile))
+const roleId = computed(() => {
+  switch (roleKey.value) {
+    case 'admin': return 1
+    case 'manager': return 2
+    case 'staff': return 3
+    default: return null
+  }
+})
 
 const userName = computed(() => {
   if (authStore.profile) {

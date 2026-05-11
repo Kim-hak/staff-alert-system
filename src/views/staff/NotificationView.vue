@@ -142,8 +142,5 @@ const feedback = ref({
   flex-shrink: 0;
 }
 
-/* Optional: Adding a font-family for better Khmer rendering */
-.fade-in {
-  font-family: 'Kantumruy Pro', 'Hanuman', sans-serif;
-}
+
 </style>
