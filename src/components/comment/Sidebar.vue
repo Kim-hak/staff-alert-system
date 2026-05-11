@@ -8,7 +8,8 @@
   >
     <div class="sidebar-brand text-center py-4">
       <div class="brand-icon mb-2">
-        <i class="bi bi-bell-fill text-white fs-3"></i>
+        <!-- <i class="bi bi-bell-fill text-white fs-3"></i> -->
+         <img style="width: 60px ; height: 60px;" src="../../assets/file_00000000c7007207a759e14e013b3f54.png" alt="">
       </div>
       <h4 class="brand-name text-white">AlertGo</h4>
     </div>
@@ -17,52 +18,69 @@
       <!-- Admin Links -->
       <template v-if="roleId === 1">
         <RouterLink :to="{ name: 'adminDashboard' }" class="nav-item-custom">
-          <i class="bi bi-grid-fill"></i> Dashboard
+          <i class="bi bi-grid-fill"></i> ផ្ទាំងគ្រប់គ្រង
         </RouterLink>
         <RouterLink :to="{ name: 'adminUsers' }" class="nav-item-custom">
-          <i class="bi bi-people-fill"></i> Users
+          <i class="bi bi-person-fill"></i> អ្នកប្រើប្រាស់
         </RouterLink>
         <RouterLink :to="{ name: 'adminStaff' }" class="nav-item-custom">
-          <i class="bi bi-person-badge"></i> Staff Management
+          <i class="bi bi-people-fill"></i> ក្រុម
         </RouterLink>
         <RouterLink :to="{ name: 'adminReports' }" class="nav-item-custom">
-          <i class="bi bi-file-earmark-text"></i> Reports
+          <i class="bi bi-file-earmark-bar-graph-fill"></i> របាយការណ៍
         </RouterLink>
         <RouterLink :to="{ name: 'adminSalary' }" class="nav-item-custom">
-          <i class="bi bi-currency-dollar"></i> Salary Management
+          <i class="bi bi-bell-fill"></i> សេចក្តីជូនដំណឹង
+        </RouterLink>
+        <RouterLink :to="{name : 'adminProfile'}" class="nav-item-custom">
+          <i class="bi bi-person-square"></i> ប្រវត្តិរូប
         </RouterLink>
       </template>
 
       <!-- Manager Links -->
       <template v-if="roleId === 2">
         <RouterLink :to="{ name: 'managerDashboard' }" class="nav-item-custom">
-          <i class="bi bi-grid-fill"></i> Dashboard
-        </RouterLink>
-        <RouterLink :to="{ name: 'managersGroups' }" class="nav-item-custom">
-          <i class="bi bi-collection"></i> My Groups
-        </RouterLink>
-        <RouterLink :to="{ name: 'managerReports' }" class="nav-item-custom">
-          <i class="bi bi-file-earmark-text"></i> My Reports
+          <i class="bi bi-grid-fill"></i> ផ្ទាំងគ្រប់គ្រង
         </RouterLink>
         <RouterLink :to="{ name: 'managerStaffs' }" class="nav-item-custom">
-          <i class="bi bi-people-fill"></i> My Staffs
+          <i class="bi bi-person-fill"></i> អ្នកប្រើប្រាស់
         </RouterLink>
+        <RouterLink :to="{ name: 'managersGroups' }" class="nav-item-custom">
+          <i class="bi bi-collection"></i> ក្រុមរបស់ខ្ញុំ
+        </RouterLink>
+        <RouterLink :to="{ name: 'managerReports' }" class="nav-item-custom">
+           <i class="bi bi-file-earmark-bar-graph-fill"></i> របាយការណ៍
+        </RouterLink>
+        <a href="" class="nav-item-custom"> 
+          <i class="bi bi-bell-fill"></i> សេចក្តីជូនដំណឹង
+        </a>
+        <a href="" class="nav-item-custom">
+          <i class="bi bi-person-square"></i> ប្រវត្តិរូប
+        </a>
+        <a href="" class="nav-item-custom">
+          <i class="bi bi-telegram"></i> Telegram
+        </a>
+        
       </template>
 
       <!-- Staff Links -->
       <template v-if="roleId === 3">
         <RouterLink :to="{ name: 'staffDashboard' }" class="nav-item-custom">
-          <i class="bi bi-grid-fill"></i> Dashboard
+          <i class="bi bi-grid-fill"></i> ផ្ទាំងគ្រប់គ្រង
         </RouterLink>
         <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
-          <i class="bi bi-currency-dollar"></i> Salary History
+          <i class="bi bi-currency-dollar"></i> ប្រាក់ខែ
         </RouterLink>
         <RouterLink :to="{ name: 'staffFeedback' }" class="nav-item-custom">
-          <i class="bi bi-chat-square-text"></i> Feedback
+          <i class="bi bi-bell-fill"></i> សេចក្តីជូនដំណឹង
         </RouterLink>
         <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
-          <i class="bi bi-person"></i> Profile
+          <i class="bi bi-person"></i> ប្រវត្តិរូប
         </RouterLink>
+        <a href="" class="nav-item-custom">
+          <i class="bi bi-telegram"></i> Telegram
+        </a>
+        
       </template>
     </div>
 
