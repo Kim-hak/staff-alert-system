@@ -133,7 +133,7 @@ const router = createRouter({
         },
         { path: "salary", name: "staffSalary", component: SalaryView },
         { path: "feedback", name: "staffFeedback", component: FeedbackView },
-        { path: "profile", name: "staffProfile", component: ProfileView },
+       
       ],
     },
 

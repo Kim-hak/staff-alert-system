@@ -32,9 +32,9 @@
         <RouterLink :to="{ name: 'adminSalary' }" class="nav-item-custom">
           <i class="bi bi-bell-fill"></i> សេចក្តីជូនដំណឹង
         </RouterLink>
-        <RouterLink :to="{name : 'adminProfile'}" class="nav-item-custom">
+        <a class="nav-item-custom">
           <i class="bi bi-person-square"></i> ប្រវត្តិរូប
-        </RouterLink>
+        </a>
       </template>
 
       <!-- Manager Links -->
