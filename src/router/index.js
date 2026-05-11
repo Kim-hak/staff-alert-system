@@ -99,7 +99,7 @@ const router = createRouter({
           name: "adminSalary",
           component: SalaryManagementView,
         },
-        // { path : "profile", name: "adminProfile", component: AdminProfile },
+        { path : "profile", name: "adminProfile", component: AdminProfile },
       ],
     },
 

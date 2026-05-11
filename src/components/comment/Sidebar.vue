@@ -32,9 +32,9 @@
         <RouterLink :to="{ name: 'adminSalary' }" class="nav-item-custom">
           <i class="bi bi-bell-fill"></i> សេចក្តីជូនដំណឹង
         </RouterLink>
-        <a class="nav-item-custom">
+        <RouterLink :to="{ name: 'adminProfile'}" class="nav-item-custom">
           <i class="bi bi-person-square"></i> ប្រវត្តិរូប
-        </a>
+        </RouterLink>
       </template>
 
       <!-- Manager Links -->
@@ -74,9 +74,9 @@
         <RouterLink :to="{ name: 'staffFeedback' }" class="nav-item-custom">
           <i class="bi bi-bell-fill"></i> សេចក្តីជូនដំណឹង
         </RouterLink>
-        <!-- <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
+        <a class="nav-item-custom">
           <i class="bi bi-person"></i> ប្រវត្តិរូប
-        </RouterLink> -->
+        </a>
         <a href="" class="nav-item-custom">
           <i class="bi bi-telegram"></i> Telegram
         </a>
