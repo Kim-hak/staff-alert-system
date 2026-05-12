@@ -82,7 +82,7 @@
 import { ref, reactive, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/useAuth";
-import { useToastStore } from "@/stores/toast";
+import { useToastStore } from "@/stores/useToast";
 
 const router = useRouter();
 const route = useRoute();

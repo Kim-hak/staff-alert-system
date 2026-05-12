@@ -7,8 +7,7 @@ export const useAuthStore = defineStore('auth', () => {
   // State Management
   const token = ref(localStorage.getItem('token'));
   const message_error = ref('');
-  const profile = ref(null);
-
+  const profile = ref(null); 
   const isLogined = computed(() => {
     return !!token.value;
   });
