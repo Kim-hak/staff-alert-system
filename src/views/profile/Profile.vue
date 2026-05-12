@@ -48,7 +48,6 @@
             </div>
           </div>
         </div>
-  
     </div>
 </template>
 
@@ -72,6 +71,7 @@ const userRole = computed(() => {
     default: return 'User'
   }
 })
+
 </script>
 
 <style scoped>

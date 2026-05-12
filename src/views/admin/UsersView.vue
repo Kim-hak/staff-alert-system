@@ -7,6 +7,10 @@
     <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
       <p class="text-muted">ទំព័រគ្រប់គ្រងអ្នកប្រើប្រាស់កំពុងរៀបចំ...</p>
     </div>
+    <BaseTable></BaseTable>
   </div>
 </template>
-<script setup></script>
+<script setup>
+import BaseTable from '@/components/ui/base/BaseTable.vue';
+
+</script>
