@@ -125,6 +125,7 @@ import { reactive, ref } from 'vue';
 import { useAuthStore } from '@/stores/useAuth';
 import { useRouter } from 'vue-router';
 import { validator } from '@/composables/useValitor';
+import { getRoleKey } from '@/utils/roles';
 const {validatField, error} = validator();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -163,13 +164,13 @@ async function handleLogin() {
     await authStore.login(form);
     
     if (authStore.token && authStore.profile) {
-      const roleId = authStore.profile.role.id;
+      const roleKey = getRoleKey(authStore.profile);
 
-      if (roleId === 1) {
+      if (roleKey === 'admin') {
         router.replace({ name: 'adminDashboard' });
-      } else if (roleId === 2) {
+      } else if (roleKey === 'manager') {
         router.push({ name: 'managerDashboard' });
-      } else if (roleId === 3) {
+      } else if (roleKey === 'staff') {
         router.push({ name: 'staffDashboard' });
       }
     }
