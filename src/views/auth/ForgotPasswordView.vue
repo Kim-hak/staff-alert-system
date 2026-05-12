@@ -97,13 +97,6 @@
             </a>
 
             <button
-              @click="goToResetPassword"
-              class="btn btn-outline-success py-3 shadow-sm"
-            >
-              បន្តទៅកំណត់ពាក្យសម្ងាត់ថ្មី
-            </button>
-
-            <button
               @click="step = 'email'"
               class="btn btn-link text-secondary text-decoration-none"
             >
@@ -136,7 +129,7 @@ const handleSubmitEmail = async () => {
     toastStore.error("សូមបញ្ចូលអុីម៉ែលរបស់អ្នក។");
     return;
   }
-
+  
   loading.value = true;
 
   try {

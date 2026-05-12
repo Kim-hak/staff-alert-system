@@ -35,6 +35,10 @@
             សូមចុចតំណនៅក្នុងអ៊ីមែលដែលបានផ្ញើទៅអ្នក ដើម្បីបន្តការកំណត់ពាក្យសម្ងាត់ថ្មី។
           </div>
 
+          <div v-if="authStore.message_error" class="alert alert-danger mb-3" role="alert">
+            {{ authStore.message_error }}
+          </div>
+
           <div class="mb-4">
             <label class="form-label text-dark">ពាក្យសម្ងាត់ថ្មី</label>
             <input
@@ -43,7 +47,7 @@
               placeholder="យ៉ាងហោច ៨ តួអក្សរ"
               class="form-control"
               :class="{ 'is-invalid': passwordErrors.newPassword }"
-              @input="passwordErrors.newPassword = ''"
+              @input="passwordErrors.newPassword = ''; authStore.message_error = ''"
             />
             <div v-if="passwordErrors.newPassword" class="invalid-feedback">
               {{ passwordErrors.newPassword }}
@@ -58,7 +62,7 @@
               placeholder="បញ្ជាក់ពាក្យសម្ងាត់ម្តងទៀត"
               class="form-control"
               :class="{ 'is-invalid': passwordErrors.confirmPassword }"
-              @input="passwordErrors.confirmPassword = ''"
+              @input="passwordErrors.confirmPassword = ''; authStore.message_error = ''"
             />
             <div v-if="passwordErrors.confirmPassword" class="invalid-feedback">
               {{ passwordErrors.confirmPassword }}
@@ -82,12 +86,12 @@
 import { ref, reactive, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/useAuth";
-import { useToastStore } from "@/stores/useToast";
+import { useToast } from "vue-toastification"; // 1. Use the toast library directly
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
-const toastStore = useToastStore();
+const toast = useToast(); // 2. Initialize the toast hook
 
 const token = computed(() => route.query.token || "");
 const newPassword = ref("");
@@ -110,7 +114,7 @@ const handleResetPassword = async () => {
   }
 
   if (!hasToken.value) {
-    toastStore.error("មិនមាន Token សំរាប់កំណត់ពាក្យសម្ងាត់ថ្មីទេ។");
+    toast.error("មិនមាន Token សំរាប់កំណត់ពាក្យសម្ងាត់ថ្មីទេ។");
     return;
   }
 
@@ -119,13 +123,21 @@ const handleResetPassword = async () => {
   loading.value = true;
 
   try {
-    // Calling store with two arguments: token and newPassword
     await authStore.resetPassword(token.value, newPassword.value);
-    toastStore.success("ពាក្យសម្ងាត់ត្រូវបានផ្លាស់ប្តូរដោយជោគជ័យ។");
-    router.push("/");
+    
+    // 1. Show your successful toast alert
+    toast.success("លេខសម្ងាត់ត្រូវបានផ្លាស់ប្តូរដោយជោគជ័យ!", {
+      timeout: 3000,
+      position: "top-right"
+    });
+    newPassword.value = "";
+    confirmPassword.value = "";
+    // 2. USE REPLACE INSTEAD OF PUSH
+    // This removes the reset page from the history stack
+    router.replace("/"); 
+    
   } catch (error) {
-    const message = error?.message || "មានកំហុសពេលផ្លាស់ប្តូរពាក្យសម្ងាត់។";
-    toastStore.error(message);
+    authStore.message_error = error?.message || "មានកំហុសពេលផ្លាស់ប្តូរពាក្យសម្ងាត់។";
   } finally {
     loading.value = false;
   }
