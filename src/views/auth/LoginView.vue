@@ -22,14 +22,6 @@
           </p>
         </div>
 
-        <div
-          v-if="authStore.message_error"
-          class="alert alert-danger"
-          role="alert"
-        >
-          <i class="bi bi-exclamation-triangle"></i>
-          {{ authStore.message_error }}
-        </div>
 
         <form @submit.prevent="handleLogin">
 
@@ -125,9 +117,11 @@ import { reactive, ref } from 'vue';
 import { useAuthStore } from '@/stores/useAuth';
 import { useRouter } from 'vue-router';
 import { validator } from '@/composables/useValitor';
+import { useToast } from "vue-toastification";
 const {validatField, error} = validator();
 const router = useRouter();
 const authStore = useAuthStore();
+const toast = useToast();
 
 let form = reactive({
   email: '',
@@ -157,24 +151,26 @@ function validationForm(){
 
 async function handleLogin() {
   if (!validationForm()) return;
-  
   try {
     loading.value = true;
     await authStore.login(form);
     
     if (authStore.token && authStore.profile) {
-      const roleId = authStore.profile.role.id;
+      // 3. Show Success Alert
+      toast.success("បានចូលគណនីដោយជោគជ័យ", {
+        timeout: 2000
+      });
 
-      if (roleId === 1) {
-        router.replace({ name: 'adminDashboard' });
-      } else if (roleId === 2) {
-        router.push({ name: 'managerDashboard' });
-      } else if (roleId === 3) {
-        router.push({ name: 'staffDashboard' });
-      }
+      const roleId = authStore.profile.role.id;
+      
+      // Use replace to clear history
+      if (roleId === 1) router.replace({ name: 'adminDashboard' });
+      else if (roleId === 2) router.replace({ name: 'managerDashboard' });
+      else if (roleId === 3) router.replace({ name: 'staffDashboard' });
     }
   } catch (error) {
-    // Error is handled by authStore.message_error
+    // 4. Show Error Alert if login fails
+    toast.error(authStore.message_error || "Login failed!");
   } finally {
     loading.value = false;
   }
