@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
 import { getRoleKey } from '@/utils/roles'
+
 // ==========================================
 // 1. Layouts & Shared Views
 // ==========================================
@@ -11,9 +12,6 @@ import NotFoundView from "@/views/shared/NotFoundView.vue";
 // 2. Auth Views (សម្រាប់ Login / Forget Password)
 // ==========================================
 // ចំណាំ: សូមប្តូរឈ្មោះ File តាមជាក់ស្តែងនៅក្នុង Folder auth របស់អ្នក
-// import LoginView from '@/views/auth/LoginView.vue'
-// import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue'
-// import ResetPasswordView from '@/views/auth/ResetPasswordView.vue'
 
 // ==========================================
 // 3. Admin Views
@@ -60,6 +58,7 @@ const router = createRouter({
     component: () => import("@/views/auth/LoginView.vue"),
     meta: { guest: true },
   },
+  
   {
     path: "/auth/forget-password",
     alias: "/forgot-password",
@@ -161,44 +160,39 @@ const router = createRouter({
 })
 router.beforeEach(async (to, from) => {
   const authStore = useAuthStore();
+  const token = localStorage.getItem('token'); // Direct read for instant check
 
-  // 1. Fetch profile if logged in but data is missing
-  if (authStore.isLogined && !authStore.profile) {
+  // If no token exists and the page isn't 'Login' or 'Forgot Password'
+  if (!token && !to.meta.guest) {
+    authStore.logoutLocal(); // Clear Pinia state
+    return { name: 'Login' };
+  }
+
+  // If token exists but profile is missing (the refresh case)
+  if (token && !authStore.profile) {
     try {
       await authStore.fetchProfile();
-    } catch (e) {
+    } catch (error) {
+      localStorage.removeItem('token');
       return { name: 'Login' };
     }
   }
 
-  const roleKey = getRoleKey(authStore.profile);
-
-  // 2. STOP UNAUTHORIZED ACCESS TO ADMIN AREA
-  if (to.path.startsWith('/admin') && roleKey !== 'admin') {
-    // If not Admin, send them to their respective dashboard
-    if (roleKey === 'manager') return { name: 'managerDashboard' };
-    return { name: 'staffDashboard' }; 
+  // Redirect away from Login if already authenticated
+  if (token && to.meta.guest) {
+    return redirectByRole(authStore.profile?.role?.id);
   }
+  const roleId = authStore.profile?.role?.id;
 
-  // 3. STOP UNAUTHORIZED ACCESS TO MANAGER AREA (Role 2)
-  if (to.path.startsWith('/manager') && roleKey !== 'manager') {
-    // If not Manager, send them to their respective dashboard
-    if (roleKey === 'admin') return { name: 'adminDashboard' };
-    return { name: 'staffDashboard' };
+  // If a logged-in user tries to go to the Login page manually
+  if (to.name === 'Login' && token) {
+    return redirectByRole(roleId); // 👈 This is where it was crashing
   }
-
-  // 4. STOP UNAUTHORIZED ACCESS TO STAFF AREA (Role 3)
-  if (to.path.startsWith('/staff') && roleKey !== 'staff') {
-     // If not Staff, send them back
-     if (roleKey === 'admin') return { name: 'adminDashboard' };
-     if (roleKey === 'manager') return { name: 'managerDashboard' };
-  }
-
-  // 5. REDIRECT LOGGED-IN USERS AWAY FROM LOGIN PAGE
-  if (to.name === 'Login' && authStore.isLogined) {
-    if (roleKey === 'admin') return { name: 'adminDashboard' };
-    if (roleKey === 'manager') return { name: 'managerDashboard' };
-    if (roleKey === 'staff') return { name: 'staffDashboard' };
-  }
+  function redirectByRole(roleId) {
+  if (roleId === 1) return { name: 'adminDashboard' };
+  if (roleId === 2) return { name: 'managerDashboard' };
+  if (roleId === 3) return { name: 'staffDashboard' };
+  return { name: 'Login' }; // Default fallback
+}
 });
 export default router
