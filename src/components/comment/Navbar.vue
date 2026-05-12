@@ -21,13 +21,13 @@
 
       <!-- Dropdown -->
       <div v-if="dropOpen" class="nav-dropdown">
-        <div class="nav-drop-header">
-          <div class="nav-avatar nav-avatar-lg">
+        <div class="nav-drop-header d-flex align-items-center gap-3 ">
+          <div class="nav-avatar nav-avatar-lg ">
             <img v-if="authStore.profile?.avatar" :src="authStore.profile.avatar" />
             <span v-else>{{ initial }}</span>
           </div>
-          <div>
-            <div class="fw-bold small">{{ displayName }}</div>
+          <div class="d-flex flex-column justify-content-center" style="transform: translateY(-9px);">
+            <div class="fw-bold small ">{{ displayName }}</div>
             <div style="font-size:12px;color:#84A98C">{{ roleLabel }}</div>
           </div>
         </div>
@@ -160,6 +160,7 @@ onBeforeUnmount(()=> document.removeEventListener('click', handleOutside))
   min-width: 220px; z-index: 2000;
   overflow: hidden;
   animation: fadeDown .15s ease;
+
 }
 @keyframes fadeDown { from{ opacity:0; transform:translateY(-6px) } to{ opacity:1; transform:none } }
 
@@ -178,6 +179,7 @@ onBeforeUnmount(()=> document.removeEventListener('click', handleOutside))
   color: #374151; text-decoration: none; cursor: pointer;
   background: none; border: none; width: 100%; text-align: left;
   transition: background .12s;
+  
 }
 .nav-drop-item:hover { background: #f0fdf4; color: #52796F; }
 .nav-drop-item i { font-size: 15px; width: 18px; }

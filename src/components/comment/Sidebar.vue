@@ -8,66 +8,64 @@
     </div>
 
     <!-- Nav Links -->
-    <div class="sidebar-nav px-2">
+  <div class="sidebar-nav px-2">
 
-      <!-- ── ADMIN (role.id === 1) ── -->
-      <template v-if="roleId === 1">
-        <RouterLink :to="{ name: 'adminDashboard' }" class="nav-item-custom">
-          <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
-        </RouterLink>
-        <RouterLink :to="{ name: 'adminUsers' }" class="nav-item-custom">
-          <i class="bi bi-people-fill"></i><span>អ្នកប្រើប្រាស់</span>
-        </RouterLink>
-        <RouterLink :to="{ name: 'adminStaff' }" class="nav-item-custom">
-          <i class="bi bi-diagram-3-fill"></i><span>ក្រុម</span>
-        </RouterLink>
-        <RouterLink :to="{ name: 'adminReports' }" class="nav-item-custom">
-          <i class="bi bi-file-earmark-bar-graph-fill"></i><span>របាយការណ៍</span>
-        </RouterLink>
-        <RouterLink :to="{ name: 'adminSalary' }" class="nav-item-custom">
-          <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
-        </RouterLink>
-        <RouterLink :to="{ name: 'adminProfile' }" class="nav-item-custom">
-          <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
-        </RouterLink>
-      </template>
+  <template v-if="roleId === 1">
+    <RouterLink :to="{ name: 'adminDashboard' }" class="nav-item-custom">
+      <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
+    </RouterLink>
+    <RouterLink :to="{ name: 'adminUsers' }" class="nav-item-custom">
+      <i class="bi bi-people-fill"></i><span>អ្នកប្រើប្រាស់</span>
+    </RouterLink>
+    <RouterLink :to="{ name: 'adminStaff' }" class="nav-item-custom">
+      <i class="bi bi-diagram-3-fill"></i><span>ក្រុម</span>
+    </RouterLink>
+    <RouterLink :to="{ name: 'adminReports' }" class="nav-item-custom">
+      <i class="bi bi-file-earmark-bar-graph-fill"></i><span>របាយការណ៍</span>
+    </RouterLink>
+    <RouterLink :to="{ name: 'adminSalary' }" class="nav-item-custom">
+      <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
+    </RouterLink>
+    <RouterLink :to="{ name: 'adminProfile' }" class="nav-item-custom">
+      <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
+    </RouterLink>
+  </template>
 
-      <!-- ── MANAGER (role.id === 2) ── -->
-      <template v-if="roleId === 2">
-        <RouterLink :to="{ name: 'managerDashboard' }" class="nav-item-custom">
-          <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
-        </RouterLink>
-        <RouterLink :to="{ name: 'managerStaffs' }" class="nav-item-custom">
-          <i class="bi bi-person-lines-fill"></i><span>បុគ្គលិករបស់ខ្ញុំ</span>
-        </RouterLink>
-        <RouterLink :to="{ name: 'managersGroups' }" class="nav-item-custom">
-          <i class="bi bi-diagram-3-fill"></i><span>ក្រុម</span>
-        </RouterLink>
-        <RouterLink :to="{ name: 'managerReports' }" class="nav-item-custom">
-          <i class="bi bi-file-earmark-bar-graph-fill"></i><span>របាយការណ៍</span>
-        </RouterLink>
-        <RouterLink to="/manager/profile" class="nav-item-custom">
-          <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
-        </RouterLink>
-      </template>
+<!-- ផ្នែក MANAGER (role.id === 2) -->
+<template v-if="roleId === 2">
+  <RouterLink :to="{ name: 'managerDashboard' }" class="nav-item-custom">
+    <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
+  </RouterLink>
+  <RouterLink :to="{ name: 'managerStaffs' }" class="nav-item-custom">
+    <i class="bi bi-person-lines-fill"></i><span>បុគ្គលិករបស់ខ្ញុំ</span>
+  </RouterLink>
+  <RouterLink :to="{ name: 'managersGroups' }" class="nav-item-custom">
+    <i class="bi bi-diagram-3-fill"></i><span>ក្រុម</span>
+  </RouterLink>
+  <RouterLink :to="{ name: 'managerReports' }" class="nav-item-custom">
+    <i class="bi bi-file-earmark-bar-graph-fill"></i><span>របាយការណ៍</span>
+  </RouterLink>
+  <RouterLink :to="{ name: 'managerProfile' }" class="nav-item-custom">
+    <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
+  </RouterLink>
+</template>
 
-      <!-- ── STAFF (role.id === 3) ── -->
-      <template v-if="roleId === 3">
-        <RouterLink :to="{ name: 'staffDashboard' }" class="nav-item-custom">
-          <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
-        </RouterLink>
-        <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
-          <i class="bi bi-cash-stack"></i><span>ប្រាក់ខែ</span>
-        </RouterLink>
-        <RouterLink :to="{ name: 'staffFeedback' }" class="nav-item-custom">
-          <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
-        </RouterLink>
-        <RouterLink to="/staff/profile" class="nav-item-custom">
-          <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
-        </RouterLink>
-      </template>
+  <template v-if="roleId === 3">
+    <RouterLink :to="{ name: 'staffDashboard' }" class="nav-item-custom">
+      <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
+    </RouterLink>
+    <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
+      <i class="bi bi-cash-stack"></i><span>ប្រាក់ខែ</span>
+    </RouterLink>
+    <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
+      <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
+    </RouterLink>
+    <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
+      <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
+    </RouterLink>
+  </template>
 
-    </div>
+</div>
 
     <!-- Footer -->
     <div class="sidebar-footer">
@@ -94,7 +92,9 @@ import { computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
 
+
 defineProps({ isOpen: Boolean, isMobile: Boolean })
+
 const authStore = useAuthStore()
 const router    = useRouter()
 
