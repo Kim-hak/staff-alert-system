@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
+import { getRoleKey } from '@/utils/roles'
 // ==========================================
 // 1. Layouts & Shared Views
 // ==========================================
@@ -33,9 +34,10 @@ import MyStaffsView from "@/views/manager/MyStaffsView.vue";
 // ==========================================
 import StaffDashboardView from "@/views/staff/StaffDashboardView.vue";
 import SalaryView from "@/views/staff/SalaryView.vue";
-import FeedbackView from "@/views/staff/FeedbackView.vue";
 import ProfileView from "@/views/staff/ProfileView.vue"; // នេះជា Profile របស់ Staff
 import AdminProfile from '@/views/admin/AdminProfile.vue';
+import TelegramView from '@/views/staff/TelegramView.vue';
+
 
 // ==========================================
 // 6. Global Profile View (សម្រាប់ Admin/Manager)
@@ -130,7 +132,9 @@ const router = createRouter({
           component: StaffDashboardView,
         },
         { path: "salary", name: "staffSalary", component: SalaryView },
-        { path: "feedback", name: "staffFeedback", component: FeedbackView },
+        { path: "profile", name: "staffProfile", component: ProfileView },
+        { path: "telegram", name: "staffTelegram", component: TelegramView },
+
        
       ],
     },

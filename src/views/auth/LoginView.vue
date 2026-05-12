@@ -117,7 +117,11 @@ import { reactive, ref } from 'vue';
 import { useAuthStore } from '@/stores/useAuth';
 import { useRouter } from 'vue-router';
 import { validator } from '@/composables/useValitor';
+<<<<<<< HEAD
 import { useToast } from "vue-toastification";
+=======
+import { getRoleKey } from '@/utils/roles';
+>>>>>>> 449e94505cbca8799aabd443d4f32fa085971c52
 const {validatField, error} = validator();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -156,6 +160,7 @@ async function handleLogin() {
     await authStore.login(form);
     
     if (authStore.token && authStore.profile) {
+<<<<<<< HEAD
       // 3. Show Success Alert
       toast.success("បានចូលគណនីដោយជោគជ័យ", {
         timeout: 2000
@@ -167,6 +172,17 @@ async function handleLogin() {
       if (roleId === 1) router.replace({ name: 'adminDashboard' });
       else if (roleId === 2) router.replace({ name: 'managerDashboard' });
       else if (roleId === 3) router.replace({ name: 'staffDashboard' });
+=======
+      const roleKey = getRoleKey(authStore.profile);
+
+      if (roleKey === 'admin') {
+        router.replace({ name: 'adminDashboard' });
+      } else if (roleKey === 'manager') {
+        router.push({ name: 'managerDashboard' });
+      } else if (roleKey === 'staff') {
+        router.push({ name: 'staffDashboard' });
+      }
+>>>>>>> 449e94505cbca8799aabd443d4f32fa085971c52
     }
   } catch (error) {
     // 4. Show Error Alert if login fails

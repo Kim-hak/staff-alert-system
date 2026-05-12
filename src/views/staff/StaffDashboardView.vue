@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="container-fluid p-4">
     <div class="mb-4 text-start">
       <h3 class="fw-bold text-dark mb-1">Dashboard</h3>
@@ -15,80 +15,88 @@
         <StatCard title="Profile Status" :value="status" :value-color="status === 'ACTIVATED' ? '#2e7d32' : '#c62828'"
           icon="bi bi-person-check" icon-color="text-primary" bg-color="bg-light-blue" />
       </div>
+    </div>
+
+   
+  </div>
+</template> -->
+
+<template>
+   <div class="container-fluid p-4">
+    <div class="mb-4 text-start">
+      <h3 class="fw-bold text-dark mb-1">Dashboard</h3>
+      <p class="text-muted small">Welcome back, {{ profile.fullname }}!</p>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-12 col-md-4">
+        <StatCard title="Monthly Salary" :value="'$' + salary.toLocaleString()" icon="bi bi-wallet2"
+          icon-color="text-success" bg-color="bg-light-green" />
+      </div>
 
       <div class="col-12 col-md-4">
-        <StatCard title="Notifications" :value="notiCount" value-color="#f57f17" icon="bi bi-bell"
-          icon-color="text-warning" bg-color="bg-light-orange" />
+        <StatCard title="Profile Status" :value="status" :value-color="status === 'ACTIVATED' ? '#2e7d32' : '#c62828'"
+          icon="bi bi-person-check" icon-color="text-primary" bg-color="bg-light-blue" />
       </div>
+
+     
     </div>
 
-    <div class="row g-4">
+     
 
-      <div class="col-12 col-lg-8">
-        <BaseCard title="Recent Feedback & Reports">
-          <BaseTable :columns="reportColumns" :data="recentReports" :loading="isLoadingReports">
-            <template #status="{ item }">
-              <BaseBadge :type="item.status === 'REVIEWED' ? 'success' : 'warning'">
-                {{ item.status }}
-              </BaseBadge>
-            </template>
+   
+  </div>
+  <div class="container-fluid py-4">
+  <div class="row mb-4">
+    </div>
 
-            <template #actions="{ item }">
-              <button class="btn btn-sm btn-light text-primary" @click="viewReport(item)" title="View Details">
-                <i class="bi bi-eye"></i> View
-              </button>
-            </template>
-          </BaseTable>
+  <div class="row">
 
-          <div class="text-end mt-3">
-            <router-link to="/staff/feedback" class="text-decoration-none text-success small fw-medium">
-              View All Reports <i class="bi bi-arrow-right"></i>
-            </router-link>
+     <div class="col-lg-4 mb-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body text-center">
+          <!-- <img src="user-avatar.png" class="rounded-circle mb-3" width="100" alt="Avatar"> -->
+          <h5 class="card-title">Staff User</h5>
+          <p class="text-muted small">Authorized Staff Member</p>
+          <hr>
+          <div class="text-start mb-3">
+            <p class="mb-1"><strong>ID:</strong> ST-00421</p>
+            <p class="mb-1"><strong>Email:</strong> user@alertgo.com</p>
           </div>
-        </BaseCard>
+         
+        </div>
       </div>
-
-      <div class="col-12 col-lg-4">
-        <BaseCard title="Recent Notifications">
-          <template #headerAction>
-            <span class="badge bg-danger rounded-pill px-2 py-1" style="font-size: 0.75rem;">{{ notiCount }} New</span>
-          </template>
-
-          <div class="notification-list mt-2">
-            <div class="d-flex align-items-start border-bottom pb-3 mb-3">
-              <div class="bg-light-orange p-2 rounded-circle me-3 d-flex align-items-center justify-content-center"
-                style="width: 40px; height: 40px;">
-                <i class="bi bi-gift text-warning fs-5"></i>
-              </div>
-              <div>
-                <p class="mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Happy Work Anniversary!</p>
-                <p class="text-muted small mb-0">2 hours ago</p>
-              </div>
-            </div>
-
-            <div class="d-flex align-items-start border-bottom pb-3 mb-3">
-              <div class="bg-light-green p-2 rounded-circle me-3 d-flex align-items-center justify-content-center"
-                style="width: 40px; height: 40px;">
-                <i class="bi bi-file-earmark-text text-success fs-5"></i>
-              </div>
-              <div>
-                <p class="mb-1 fw-bold text-dark" style="font-size: 0.9rem;">New Feedback Submitted</p>
-                <p class="text-muted small mb-0">Yesterday at 10:30 AM</p>
-              </div>
-            </div>
-
-          </div>
-
-          <router-link to="/staff/notifications" class="w-100 text-decoration-none mt-2 d-block">
-            <BaseButton variant="outline" fullWidth>
-              View All <i class="bi bi-arrow-right ms-1"></i>
-            </BaseButton>
-          </router-link>
-        </BaseCard>
+    </div>
+   
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-0 py-3">
+          <h6 class="mb-0 fw-bold">Recent Salary History</h6>
+        </div>
+        <div class="table-responsive px-3 pb-3">
+          <table class="table align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Month</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>April 2026</td>
+                <td>$6,250</td>
+                <td><span class="badge bg-success">Paid</span></td>
+                <td class="text-end"><button class="btn btn-sm btn-light">PDF</button></td>
+              </tr>
+              </tbody>
+          </table>
+        </div>
       </div>
-
     </div>
   </div>
+</div>
 </template>
 
 <script setup>
@@ -96,10 +104,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 // Import Base Components
 import StatCard from '@/components/ui/base/StatCard.vue';
-import BaseCard from '@/components/ui/base/BaseCard.vue';
-import BaseTable from '@/components/ui/base/BaseTable.vue';
-import BaseBadge from '@/components/ui/base/BaseBadge.vue';
-import BaseButton from '@/components/ui/base/BaseButton.vue';
+
 
 // *ចំណាំ: អ្នកត្រូវដូរ Path Axios ទៅតាមរបស់ពិតរបស់អ្នក*
 // import apiClient from '@/api/axios'; 
