@@ -1,14 +1,18 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Koh+Santepheap:wght@100;300;400;700;900&display=swap');
+
 :root {
   --primary-color: #52796F;
-  --secondary-color: #84A98C;
-  --bs-body-font-family:  "Inter", Hanuman, sans-serif, serif;
+  --secondary-color: #78a081;
+  --bs-body-font-family: 'Koh Santepheap', serif;
+
  
 }
 
 body {
-  background: white;
   font-family: var(--bs-body-font-family);
-  font-size: 15px;
+  font-size: 16px;            
+  line-height: 1.6;           
+  -webkit-font-smoothing: antialiased; 
+  color: #2d3436;             
 }

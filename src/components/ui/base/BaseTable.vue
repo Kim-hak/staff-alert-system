@@ -2,21 +2,23 @@
 
   <div class="table-responsive bg-white rounded-4 border border-light shadow-sm">
 
-    <table class="table table-hover align-middle custom-table mb-0">
+    <table class="table table-hover align-middle custom-table mb-0 shadow-lg">
 
       <thead class="table-header">
 
         <tr>
 
-          <th v-for="col in columns" :key="col.key" class="text-uppercase fw-semibold text-muted py-3 px-4" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+          <th v-for="col in columns" :key="col.key" class="text-uppercase fw-bold text-success text-muted py-3 px-4"
+            style="font-size: 14px; letter-spacing: 0.5px;">
 
             {{ col.label }}
 
           </th>
 
-          <th v-if="$slots.actions" class="py-3 px-4 text-end text-uppercase fw-semibold text-muted" style="font-size: 0.75rem;">
+          <th v-if="$slots.actions" class="py-3 px-4 text-end text-uppercase fw-semibold text-muted"
+            style="font-size: 0.75rem;">
 
-            Actions
+            Status
 
           </th>
 
@@ -24,7 +26,7 @@
 
       </thead>
 
-     
+
 
       <tbody>
 
@@ -39,13 +41,9 @@
         </tr>
 
         <tr v-else-if="!data || data.length === 0">
-
-          <td :colspan="columns+ ($slots.actions ? 1 : 0)" class="text-center py-5 text-muted">
-
+          <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-5 text-muted">
             <i class="bi bi-inbox fs-2 d-block mb-2 text-light-muted"></i> No data available
-
           </td>
-
         </tr>
 
         <tr v-else v-for="(item, index) in data" :key="item.id || index" class="custom-row">
@@ -54,7 +52,7 @@
 
             <slot :name="col.key" :item="item">
 
-              <span class="text-dark fw-medium">{{ item[col.key] }}</span>
+              <span class="text-dark fw-medium ">{{ item[col.key] }}</span>
 
             </slot>
 
@@ -82,9 +80,9 @@
 
 defineProps({
 
-  columns: { type: Array, required: true }, // ឧ: [{ key: 'fullname', label: 'Full Name' }, ...]
+  columns: Array,
 
-  data: { type: Array, required: true },
+  data: Array,
 
   loading: Boolean
 
@@ -95,10 +93,9 @@ defineProps({
 
 
 <style scoped>
-
 .custom-table th {
 
-  background-color: #f8fbfc;
+  background-color: #d9e5ea;
 
   border-bottom: 2px solid #eef2f5;
 
@@ -106,7 +103,7 @@ defineProps({
 
 .custom-row td {
 
-  border-bottom: 1px solid #f1f5f4;
+  border-bottom: 1px solid #e5eeec;
 
   transition: background-color 0.2s;
 
@@ -116,12 +113,12 @@ defineProps({
 
   border-bottom: none;
 
+
 }
 
 .custom-row:hover td {
 
-  background-color: #fcfdfd;
+  background-color: #effafa;
 
 }
-
 </style>

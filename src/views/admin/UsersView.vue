@@ -9,34 +9,57 @@
         <template #icon>
           <span>+</span>
         </template>
-        បង្កើអ្នកប្រើប្រាស់
+        បង្កើតអ្នកប្រើប្រាស់
       </BaseButton>
     </div>
+    <BaseTable 
+      :columns="col" 
+      :data="arcticleStore.allArcticles" 
+      :loading="arcticleStore.loading"
+    >
+        <template  #id="{ item }">
+            <span class="text-success">{{ item.id }}</span>
+        </template>
+        
+        <template #email="{ item }">
+            <span class="text-primary">{{ item.email }}</span>
+        </template>
 
-    <BaseTable :columns="myCols" :data="myData">
-      <template #status="{ item }">
-        <span :class="item.status === 'Active' ? 'text-success' : 'text-danger'">
-          {{ item.status }}
-        </span>
-      </template>
+        <template #role_name="{ item }">
+            <span class="badge bg-light text-dark">{{ item.role?.name }}</span>
+        </template>
+        <template #status="{ item }">
+            <span class="badge bg-light text-dark">{{ item.status }}</span>
+        </template>
     </BaseTable>
+    
   </div>
 </template>
 <script setup>
 import BaseButton from '@/components/ui/base/BaseButton.vue';
 import BaseTable from '@/components/ui/base/BaseTable.vue';
+import { useArcticleStore } from '@/stores/useArcticleStore';
 
-const myCols = [
-    {key: 'title', label: 'Title'},
-    {key: 'content', label: 'Content'},
-    {key: 'thumbnail', label: 'Thumbnail'},
-    {key: 'category', label: 'Category'},
+import { onMounted } from 'vue';
+
+
+const arcticleStore=useArcticleStore();
+onMounted(()=>{
+  arcticleStore.fectchAllArcticles();
+})
+const col = [
+    {key: 'id', label: 'ID'},
+    {key: 'fullname', label: 'Full Name'},
+    {key: 'email', label: 'Email'},
+    {key: 'phone', label: 'Phone Number'},
+    {key: 'role_name', label: 'Role'},
+    {key: 'salary',label:'Salary'},
+    {key: 'status',label:'Status'},
 ]
-
 </script>
 <style>
 .role-badge {
-  background: #f1f5f9;
+  background: #d5eee7;
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 11px;

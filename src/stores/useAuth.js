@@ -1,13 +1,19 @@
 import { defineStore } from "pinia";
 import api from "@/api/api";
 import { computed, ref } from "vue";
+import { useRouter } from 'vue-router';
 
 export const useAuthStore = defineStore('auth', () => {
 
   // State Management
   const token = ref(localStorage.getItem('token'));
   const message_error = ref('');
-  const profile = ref(null); 
+
+
+
+  const profile = ref(null);
+  const router = useRouter();
+
   const isLogined = computed(() => {
     return !!token.value;
   });
@@ -86,6 +92,7 @@ export const useAuthStore = defineStore('auth', () => {
       throw error.response?.data || error;
     }
   }
+  
 
   return {
     token,
@@ -97,6 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     forgotPassword,
     resetPassword,
-    changePassword
+    changePassword,
+    logoutLocal
   }
 });
