@@ -71,9 +71,9 @@
         <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
           <i class="bi bi-currency-dollar"></i> ប្រាក់ខែ
         </RouterLink>
-        <RouterLink :to="{ name: 'staffNotification' }" class="nav-item-custom">
+        <!-- <RouterLink :to="{ name: 'staffNotification' }" class="nav-item-custom">
           <i class="bi bi-bell-fill"></i> សេចក្តីជូនដំណឹង
-        </RouterLink>
+        </RouterLink> -->
         <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
           <i class="bi bi-person"></i> ប្រវត្តិរូប
         </RouterLink>

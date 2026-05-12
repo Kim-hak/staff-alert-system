@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="container-fluid p-4">
     <div class="mb-4 text-start">
       <h3 class="fw-bold text-dark mb-1">Dashboard</h3>
@@ -19,6 +19,84 @@
 
    
   </div>
+</template> -->
+
+<template>
+   <div class="container-fluid p-4">
+    <div class="mb-4 text-start">
+      <h3 class="fw-bold text-dark mb-1">Dashboard</h3>
+      <p class="text-muted small">Welcome back, {{ profile.fullname }}!</p>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-12 col-md-4">
+        <StatCard title="Monthly Salary" :value="'$' + salary.toLocaleString()" icon="bi bi-wallet2"
+          icon-color="text-success" bg-color="bg-light-green" />
+      </div>
+
+      <div class="col-12 col-md-4">
+        <StatCard title="Profile Status" :value="status" :value-color="status === 'ACTIVATED' ? '#2e7d32' : '#c62828'"
+          icon="bi bi-person-check" icon-color="text-primary" bg-color="bg-light-blue" />
+      </div>
+
+     
+    </div>
+
+     
+
+   
+  </div>
+  <div class="container-fluid py-4">
+  <div class="row mb-4">
+    </div>
+
+  <div class="row">
+
+     <div class="col-lg-4 mb-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body text-center">
+          <!-- <img src="user-avatar.png" class="rounded-circle mb-3" width="100" alt="Avatar"> -->
+          <h5 class="card-title">Staff User</h5>
+          <p class="text-muted small">Authorized Staff Member</p>
+          <hr>
+          <div class="text-start mb-3">
+            <p class="mb-1"><strong>ID:</strong> ST-00421</p>
+            <p class="mb-1"><strong>Email:</strong> user@alertgo.com</p>
+          </div>
+         
+        </div>
+      </div>
+    </div>
+   
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-0 py-3">
+          <h6 class="mb-0 fw-bold">Recent Salary History</h6>
+        </div>
+        <div class="table-responsive px-3 pb-3">
+          <table class="table align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Month</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>April 2026</td>
+                <td>$6,250</td>
+                <td><span class="badge bg-success">Paid</span></td>
+                <td class="text-end"><button class="btn btn-sm btn-light">PDF</button></td>
+              </tr>
+              </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </template>
 
 <script setup>

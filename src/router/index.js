@@ -39,7 +39,6 @@ import StaffDashboardView from "@/views/staff/StaffDashboardView.vue";
 import SalaryView from "@/views/staff/SalaryView.vue";
 import ProfileView from "@/views/staff/ProfileView.vue"; // នេះជា Profile របស់ Staff
 import AdminProfile from '@/views/admin/AdminProfile.vue';
-import Notification from '@/views/staff/NotificationView.vue';
 
 
 // ==========================================
@@ -134,7 +133,6 @@ const router = createRouter({
           component: StaffDashboardView,
         },
         { path: "salary", name: "staffSalary", component: SalaryView },
-        { path: "notification", name: "staffNotification", component: Notification },
         { path: "profile", name: "staffProfile", component: ProfileView },
        
       ],
