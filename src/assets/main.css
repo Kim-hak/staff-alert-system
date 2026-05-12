@@ -15,3 +15,7 @@ body {
   -webkit-font-smoothing: antialiased; 
   color: #2d3436;             
 }
+
+.swal2-popup {
+  font-family: 'Kantumruy Pro', sans-serif !important; /* ឬ Font ដែលអ្នកកំពុងប្រើ */
+}

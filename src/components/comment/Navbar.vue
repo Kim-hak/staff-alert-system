@@ -48,6 +48,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
+import Swal from 'sweetalert2'
 defineEmits(['toggle'])
 
 const authStore = useAuthStore()
@@ -80,12 +81,37 @@ const profileRoute = computed(() => {
   }
 })
 
-async function doLogout() {
-  dropOpen.value = false
-  await authStore.logout()
-  router.replace('/')
-}
+const doLogout = () => {
+  Swal.fire({
+    title: 'តើអ្នកប្រាកដទេ?',
+    text: "អ្នកនឹងត្រូវចាកចេញពីប្រព័ន្ធ!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#2D6A4F', // ពណ៌បៃតងចាស់ (AlertGo Style)
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'បាទ ចាកចេញ!',
+    cancelButtonText: 'បោះបង់',
+    reverseButtons: true,
+    // ថែមស្ទីលឱ្យត្រូវជាមួយ Dashboard របស់អ្នក
+    background: '#ffffff',
+    color: '#1b4332'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      await authStore.logout()
+      
+      // បង្ហាញការជោគជ័យបែបទំនើប
+      Swal.fire({
+        title: 'ចាកចេញជោគជ័យ!',
+        text: 'ជួបគ្នាពេលក្រោយ!',
+        icon: 'success',
+        showConfirmButton: false,
+        timer: 1500
+      })
 
+      router.replace('/')
+    }
+  })
+}
 // Close dropdown on outside click
 function handleOutside(e) {
   if (dropRef.value && !dropRef.value.contains(e.target)) dropOpen.value = false

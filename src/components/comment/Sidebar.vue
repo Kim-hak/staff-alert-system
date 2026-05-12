@@ -59,7 +59,7 @@
           <i class="bi bi-cash-stack"></i><span>ប្រាក់ខែ</span>
         </RouterLink>
         <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
-          <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
+          <i class="bi bi-bell-fill"></i><span>តេលេក្រាម</span>
         </RouterLink>
         <RouterLink to="/staff/profile" class="nav-item-custom">
           <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
@@ -92,6 +92,7 @@
 import { computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
+import Swal from 'sweetalert2'
 
 
 defineProps({ isOpen: Boolean, isMobile: Boolean })
@@ -109,9 +110,36 @@ const userName = computed(() => {
 const userInitial = computed(() => userName.value.charAt(0).toUpperCase())
 const userRole    = computed(() => ({ 1:'ADMIN', 2:'MANAGER', 3:'STAFF' }[roleId.value] || 'USER'))
 
-async function doLogout() {
-  await authStore.logout()
-  router.replace('/')
+const doLogout = () => {
+  Swal.fire({
+    title: 'តើអ្នកប្រាកដទេ?',
+    text: "អ្នកនឹងត្រូវចាកចេញពីប្រព័ន្ធ!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#2D6A4F', // ពណ៌បៃតងចាស់ (AlertGo Style)
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'បាទ ចាកចេញ!',
+    cancelButtonText: 'បោះបង់',
+    reverseButtons: true,
+    // ថែមស្ទីលឱ្យត្រូវជាមួយ Dashboard របស់អ្នក
+    background: '#ffffff',
+    color: '#1b4332'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      await authStore.logout()
+      
+      // បង្ហាញការជោគជ័យបែបទំនើប
+      Swal.fire({
+        title: 'ចាកចេញជោគជ័យ!',
+        text: 'ជួបគ្នាពេលក្រោយ!',
+        icon: 'success',
+        showConfirmButton: false,
+        timer: 1500
+      })
+
+      router.replace('/')
+    }
+  })
 }
 </script>
 
