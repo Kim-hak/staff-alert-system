@@ -50,20 +50,21 @@
   </RouterLink>
 </template>
 
-  <template v-if="roleId === 3">
-    <RouterLink :to="{ name: 'staffDashboard' }" class="nav-item-custom">
-      <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
-    </RouterLink>
-    <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
-      <i class="bi bi-cash-stack"></i><span>ប្រាក់ខែ</span>
-    </RouterLink>
-    <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
-      <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
-    </RouterLink>
-    <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
-      <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
-    </RouterLink>
-  </template>
+      <!-- ── STAFF (role.id === 3) ── -->
+      <template v-if="roleId === 3">
+        <RouterLink :to="{ name: 'staffDashboard' }" class="nav-item-custom">
+          <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
+          <i class="bi bi-cash-stack"></i><span>ប្រាក់ខែ</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
+          <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
+        </RouterLink>
+        <RouterLink to="/staff/profile" class="nav-item-custom">
+          <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
+        </RouterLink>
+      </template>
 
 </div>
 
