@@ -39,6 +39,7 @@ import StaffDashboardView from "@/views/staff/StaffDashboardView.vue";
 import SalaryView from "@/views/staff/SalaryView.vue";
 import ProfileView from "@/views/staff/ProfileView.vue"; // នេះជា Profile របស់ Staff
 import AdminProfile from '@/views/admin/AdminProfile.vue';
+import TelegramView from '@/views/staff/TelegramView.vue';
 
 
 // ==========================================
@@ -134,6 +135,8 @@ const router = createRouter({
         },
         { path: "salary", name: "staffSalary", component: SalaryView },
         { path: "profile", name: "staffProfile", component: ProfileView },
+        { path: "telegram", name: "staffTelegram", component: TelegramView },
+
        
       ],
     },

@@ -71,15 +71,15 @@
         <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
           <i class="bi bi-currency-dollar"></i> ប្រាក់ខែ
         </RouterLink>
-        <!-- <RouterLink :to="{ name: 'staffNotification' }" class="nav-item-custom">
-          <i class="bi bi-bell-fill"></i> សេចក្តីជូនដំណឹង
-        </RouterLink> -->
+        
         <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
           <i class="bi bi-person"></i> ប្រវត្តិរូប
         </RouterLink>
-        <a href="" class="nav-item-custom">
-          <i class="bi bi-telegram"></i> Telegram
-        </a>
+
+        <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
+          <i class="bi bi-telegram"></i> តេឡេក្រាម
+        </RouterLink>
+       
         
       </template>
     </div>
