@@ -207,9 +207,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import { useAuthStore } from "@/stores/auth";
-import { useToastStore } from "@/stores/toast";
+
+import { useAuthStore } from "@/stores/useAuth";
+import { useToastStore } from "@/stores/useToast";
+import { computed, ref } from "vue";
 
 // import TelegramConnectModal from "@/components/modals/TelegramConnectModal.vue";
 // import { telegramApi } from "@/api/api";
