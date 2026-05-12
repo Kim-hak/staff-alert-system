@@ -1,5 +1,9 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Koh+Santepheap:wght@100;300;400;700;900&display=swap');
+/* បង្ខំឱ្យគ្រប់ Element ទាំងអស់ប្រើ Font នេះ */
+* {
+  font-family: 'Kantumruy Pro', 'Noto Sans Khmer', sans-serif !important;
+}
+
 
 :root {
   --primary-color: #52796F;
