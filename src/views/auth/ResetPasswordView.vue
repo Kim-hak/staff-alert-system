@@ -86,7 +86,7 @@
 import { ref, reactive, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/useAuth";
-import { useToast } from "vue-toastification"; // 1. Use the toast library directly
+import { useToastStore } from "@/stores/useToast";
 
 const router = useRouter();
 const route = useRoute();

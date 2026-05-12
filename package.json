@@ -10,10 +10,11 @@
   },
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
-    "axios": "^1.15.2",
+    "axios": "^1.16.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "pinia": "^3.0.4",
+    "sweetalert2": "^11.26.24",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4",
     "vue-toastification": "^2.0.0-rc.5"

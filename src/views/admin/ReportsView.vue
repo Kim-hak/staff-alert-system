@@ -178,9 +178,9 @@
 import { onMounted } from 'vue'
 import { useReportStore } from '@/stores/useReportStore'
 import { useAuthStore } from '@/stores/useAuth'
-// import { useAdminDashboardStore } from '@/stores/useAdminDashboardStore'
 
-// const store = useAdminDashboardStore()
+
+
 const authStore = useAuthStore()
 
 onMounted(() => store.fetchDashboardData())
