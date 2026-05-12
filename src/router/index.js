@@ -35,6 +35,7 @@ import StaffDashboardView from "@/views/staff/StaffDashboardView.vue";
 import SalaryView from "@/views/staff/SalaryView.vue";
 import FeedbackView from "@/views/staff/FeedbackView.vue";
 import ProfileView from "@/views/staff/ProfileView.vue"; // នេះជា Profile របស់ Staff
+import AdminProfile from '@/views/admin/AdminProfile.vue';
 
 // ==========================================
 // 6. Global Profile View (សម្រាប់ Admin/Manager)
@@ -96,6 +97,7 @@ const router = createRouter({
           name: "adminSalary",
           component: SalaryManagementView,
         },
+        { path : "profile", name: "adminProfile", component: AdminProfile },
       ],
     },
 
@@ -129,7 +131,7 @@ const router = createRouter({
         },
         { path: "salary", name: "staffSalary", component: SalaryView },
         { path: "feedback", name: "staffFeedback", component: FeedbackView },
-        { path: "profile", name: "staffProfile", component: ProfileView },
+       
       ],
     },
 

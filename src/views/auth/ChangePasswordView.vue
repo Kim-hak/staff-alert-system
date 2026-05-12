@@ -96,7 +96,7 @@
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/useAuth";
-import { useToastStore } from "@/stores/toast";
+import { useToastStore } from "@/stores/useToast";
 
 const router = useRouter();
 const authStore = useAuthStore();
