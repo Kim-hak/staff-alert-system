@@ -60,7 +60,7 @@
         </div>
       </div>
 
-      <div class="row g-4 mb-4">
+      <!-- <div class="row g-4 mb-4">
         <div class="col-lg-6">
           <div class="card border-0 shadow-sm h-100">
             <div class="card-header text-white" style="background-color: var(--primary-color)">ប្រាក់បៀវត្សរ៍មុន</div>
@@ -102,7 +102,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white fw-semibold">ប្រវត្តិការផ្លាស់ប្តូរ</div>
