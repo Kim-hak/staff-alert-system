@@ -1,16 +1,7 @@
 <template>
   <div class="fade-in">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-      <!-- <div>
-        <h3 class="fw-bold text-dark mb-1">ប្រវត្តិប្រាក់បៀវត្សរ៍</h3>
-        <p class="text-muted small mb-0">មើលប្រាក់បៀវត្សរ៍បច្ចុប្បន្ន និងការផ្លាស់ប្តូរចុងក្រោយរបស់អ្នក។</p>
-      </div> -->
 
-      <!-- <button class="btn btn-outline-primary btn-sm mt-3 mt-md-0" :disabled="loading" @click="fetchSalaryHistory">
-        <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        <i v-else class="bi bi-arrow-clockwise me-1"></i>
-        ផ្ទុកឡើងវិញ
-      </button> -->
     </div>
 
     <div v-if="errorMessage" class="alert alert-danger border-0 shadow-sm" role="alert">
@@ -34,40 +25,45 @@
     <template v-else>
       <div class="row g-4 mb-4">
         <div class="col-md-4">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <small class="text-muted">ប្រាក់បៀវត្សរ៍មុន</small>
-              <h3 class="fw-bold mt-2">{{ formatCurrency(latestSalary.previousSalary) }}</h3>
-              <small class="text-muted">មុនពេលកែប្រែ</small>
-            </div>
-          </div>
+          <StatCard
+            title="ប្រាក់បៀវត្សរ៍មុន"
+            :value="formatCurrency(latestSalary.previousSalary)"
+            icon="bi bi-cash-stack"
+            iconColor="text-warning"
+            bgColor="bg-light-orange"
+          />
         </div>
 
         <div class="col-md-4">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <small class="text-muted">ប្រាក់បៀវត្សរ៍បច្ចុប្បន្ន</small>
-              <h3 class="fw-bold mt-2">{{ formatCurrency(latestSalary.newSalary) }}</h3>
-              <small :class="changeClass">ប្រាក់បៀវត្សរ៍ចុងក្រោយ</small>
-            </div>
-          </div>
+          <StatCard
+            title="ប្រាក់បៀវត្សរ៍បច្ចុប្បន្ន"
+            subtitle="ប្រាក់បៀវត្សរ៍ចុងក្រោយ"
+            :value="formatCurrency(latestSalary.newSalary)"
+            icon="bi bi-currency-dollar"
+            iconColor="text-success"
+            bgColor="bg-light-green"
+            :subtitleClass="changeClass"
+          />
         </div>
 
         <div class="col-md-4">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <small class="text-muted">ការផ្លាស់ប្តូរប្រាក់បៀវត្សរ៍</small>
-              <h3 class="fw-bold mt-2" :class="changeClass">{{ formattedSalaryChange }}</h3>
-              <small :class="changeClass">{{ changeLabel }}</small>
-            </div>
-          </div>
+          <StatCard
+            title="ការផ្លាស់ប្តូរប្រាក់បៀវត្សរ៍"
+            :value="formattedSalaryChange"
+            :valueColor="salaryChangeTextColor"
+            :subtitle="changeLabel"
+            :subtitleClass="changeClass"
+            icon="bi bi-graph-up-arrow"
+            :iconColor="salaryChangeIconColor"
+            bgColor="bg-light-blue"
+          />
         </div>
       </div>
 
       <div class="row g-4 mb-4">
         <div class="col-lg-6">
           <div class="card border-0 shadow-sm h-100">
-            <div class="card-header text-white" style="background-color: var(--primary-color)" >ប្រាក់បៀវត្សរ៍មុន</div>
+            <div class="card-header text-white" style="background-color: var(--primary-color)">ប្រាក់បៀវត្សរ៍មុន</div>
             <div class="card-body">
               <div class="d-flex justify-content-between border-bottom py-2">
                 <span class="text-muted">ចំនួនទឹកប្រាក់</span>
@@ -75,8 +71,8 @@
               </div>
 
               <div class="d-flex justify-content-between py-2">
-                <span class="text-muted">ស្ថានភាព</span>
-                <strong class="text-secondary">កំណត់ត្រាចាស់</strong>
+                <span class="text-muted">ការផ្លាស់ប្តូរ</span>
+                <strong :class="changeClass">{{ formattedSalaryChange }}</strong>
               </div>
             </div>
           </div>
@@ -108,7 +104,7 @@
         </div>
       </div>
 
-      <!-- <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm">
         <div class="card-header bg-white fw-semibold">ប្រវត្តិការផ្លាស់ប្តូរ</div>
         <div class="table-responsive">
           <table class="table align-middle mb-0">
@@ -134,54 +130,22 @@
             </tbody>
           </table>
         </div>
-      </div> -->
-      <BaseTable
-        :columns="salaryColumns"
-        :data="salaryHistory"
-        :loading="loading"
-      >
-        <template #effectiveDate="{ item }">
-          {{ formatDate(item.effectiveDate) }}
-        </template>
+      </div>
 
-        <template #previousSalary="{ item }">
-          {{ formatCurrency(item.previousSalary) }}
-        </template>
-
-        <template #newSalary="{ item }">
-          {{ formatCurrency(item.newSalary) }}
-        </template>
-
-        <template #change="{ item }">
-          <span :class="getChangeClass(item)">
-            {{ formatSalaryChange(item) }}
-          </span>
-        </template>
-
-        <template #changeReason="{ item }">
-          <span class="text-muted">{{ item.changeReason || 'មិនមាន' }}</span>
-        </template>
-      </BaseTable>
     </template>
   </div>
 </template>
 
 <script setup>
+import StatCard from '@/components/ui/base/StatCard.vue'
 import { computed, onMounted, ref } from 'vue'
 import api from '@/api/api'
-import BaseTable from '@/components/ui/base/BaseTable.vue'
 
 const salaryHistory = ref([])
 const loading = ref(false)
 const errorMessage = ref('')
 
-const salaryColumns = [
-  { key: 'effectiveDate', label: 'កាលបរិច្ឆេទអនុវត្ត' },
-  { key: 'previousSalary', label: 'ប្រាក់បៀវត្សរ៍មុន' },
-  { key: 'newSalary', label: 'ប្រាក់បៀវត្សរ៍ថ្មី' },
-  { key: 'change', label: 'ការផ្លាស់ប្តូរ' },
-  { key: 'changeReason', label: 'មូលហេតុ' },
-]
+
 
 const latestSalary = computed(() => salaryHistory.value[0] || null)
 
@@ -195,6 +159,14 @@ const changeClass = computed(() => {
   if (salaryChange.value < 0) return 'text-danger'
   return 'text-secondary'
 })
+
+const salaryChangeTextColor = computed(() => {
+  if (salaryChange.value > 0) return '#198754'
+  if (salaryChange.value < 0) return '#dc3545'
+  return '#6c757d'
+})
+
+const salaryChangeIconColor = computed(() => changeClass.value)
 
 const formattedSalaryChange = computed(() => {
   const sign = salaryChange.value > 0 ? '+' : ''
