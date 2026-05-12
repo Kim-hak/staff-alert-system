@@ -59,7 +59,7 @@
         <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
           <i class="bi bi-cash-stack"></i><span>ប្រាក់ខែ</span>
         </RouterLink>
-        <RouterLink :to="{ name: 'staffFeedback' }" class="nav-item-custom">
+        <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
           <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
         </RouterLink>
         <RouterLink to="/staff/profile" class="nav-item-custom">
