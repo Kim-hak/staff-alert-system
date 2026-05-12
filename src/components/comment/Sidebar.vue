@@ -1,90 +1,197 @@
 <template>
-  <nav
-    id="sidebar"
-    :class="{
-      closed: !isOpen && !isMobile,
-      open: isOpen && isMobile
-    }"
-  >
-    <div class="sidebar-brand text-center py-4">
-      <div class="brand-icon mb-2">
-        <i class="bi bi-bell-fill text-white fs-3"></i>
-      </div>
-      <h4 class="brand-name text-white">AlertGo</h4>
+  <nav id="sidebar" :class="{ closed: !isOpen && !isMobile, open: isOpen && isMobile }">
+
+    <!-- Logo -->
+    <div class="sidebar-brand">
+      <img src="../../assets/file_00000000c7007207a759e14e013b3f54.png" class="brand-logo" alt="AlertGo" />
+      <span class="brand-name">AlertGo</span>
     </div>
 
-    <div class="sidebar-nav px-3">
-      <RouterLink :to="{ name: 'staffDashboard' }" class="nav-item-custom">
-        <i class="bi bi-grid-fill"></i> Dashboard
-      </RouterLink>
-      <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
-        <i class="bi bi-currency-dollar"></i> Salary History
-      </RouterLink>
-      <RouterLink :to="{ name: 'staffFeedback' }" class="nav-item-custom">
-        <i class="bi bi-chat-square-text"></i> Feedback
-      </RouterLink>
-      <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
-        <i class="bi bi-person"></i> Profile
-      </RouterLink>
+    <!-- Nav Links -->
+    <div class="sidebar-nav px-2">
+
+      <!-- ── ADMIN (role.id === 1) ── -->
+      <template v-if="roleId === 1">
+        <RouterLink :to="{ name: 'adminDashboard' }" class="nav-item-custom">
+          <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'adminUsers' }" class="nav-item-custom">
+          <i class="bi bi-people-fill"></i><span>អ្នកប្រើប្រាស់</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'adminStaff' }" class="nav-item-custom">
+          <i class="bi bi-diagram-3-fill"></i><span>ក្រុម</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'adminReports' }" class="nav-item-custom">
+          <i class="bi bi-file-earmark-bar-graph-fill"></i><span>របាយការណ៍</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'adminSalary' }" class="nav-item-custom">
+          <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'adminProfile' }" class="nav-item-custom">
+          <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
+        </RouterLink>
+      </template>
+
+      <!-- ── MANAGER (role.id === 2) ── -->
+      <template v-if="roleId === 2">
+        <RouterLink :to="{ name: 'managerDashboard' }" class="nav-item-custom">
+          <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'managerStaffs' }" class="nav-item-custom">
+          <i class="bi bi-person-lines-fill"></i><span>បុគ្គលិករបស់ខ្ញុំ</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'managersGroups' }" class="nav-item-custom">
+          <i class="bi bi-diagram-3-fill"></i><span>ក្រុម</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'managerReports' }" class="nav-item-custom">
+          <i class="bi bi-file-earmark-bar-graph-fill"></i><span>របាយការណ៍</span>
+        </RouterLink>
+        <RouterLink to="/manager/profile" class="nav-item-custom">
+          <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
+        </RouterLink>
+      </template>
+
+      <!-- ── STAFF (role.id === 3) ── -->
+      <template v-if="roleId === 3">
+        <RouterLink :to="{ name: 'staffDashboard' }" class="nav-item-custom">
+          <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
+          <i class="bi bi-cash-stack"></i><span>ប្រាក់ខែ</span>
+        </RouterLink>
+        <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
+          <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
+        </RouterLink>
+        <RouterLink to="/staff/profile" class="nav-item-custom">
+          <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
+        </RouterLink>
+      </template>
+
     </div>
 
-    <div class="sidebar-footer mt-auto p-3 text-white">
-      <div class="user-info d-flex align-items-center gap-2">
-        <div class="user-avatar">S</div>
-        <div>
-          <div class="fw-bold small">Staff User</div>
-          <div class="small text-white-50">AUTHORIZED STAFF</div>
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar-box">
+          <img v-if="authStore.profile?.avatar" :src="authStore.profile.avatar" />
+          <span v-else>{{ userInitial }}</span>
+        </div>
+        <div class="overflow-hidden">
+          <div class="user-name">{{ userName }}</div>
+          <div class="user-role">{{ userRole }}</div>
         </div>
       </div>
+      <button class="logout-btn" @click="doLogout" title="ចេញ">
+        <i class="bi bi-box-arrow-right"></i>
+      </button>
     </div>
+
   </nav>
 </template>
 
 <script setup>
-import { RouterLink } from 'vue-router'
+import { computed } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/useAuth'
 
-defineProps({
-  isOpen: Boolean,
-  isMobile: Boolean
+defineProps({ isOpen: Boolean, isMobile: Boolean })
+const authStore = useAuthStore()
+const router    = useRouter()
+
+const roleId = computed(() => authStore.profile?.role?.id)
+
+const userName = computed(() => {
+  const p = authStore.profile
+  if (!p) return 'User'
+  return (p.fullname || `${p.firstName||''} ${p.lastName||''}`).trim() || 'User'
 })
+const userInitial = computed(() => userName.value.charAt(0).toUpperCase())
+const userRole    = computed(() => ({ 1:'ADMIN', 2:'MANAGER', 3:'STAFF' }[roleId.value] || 'USER'))
+
+async function doLogout() {
+  await authStore.logout()
+  router.replace('/')
+}
 </script>
 
 <style scoped>
-/* Move your sidebar-specific CSS here */
 #sidebar {
   position: fixed;
-  width: var(--sidebar-width);
+  width: var(--sidebar-width, 260px);
   height: 100vh;
   background: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
-  transition: 0.3s;
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
   z-index: 1050;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 #sidebar.closed { transform: translateX(-100%); }
-#sidebar.open { transform: translateX(0); }
+#sidebar.open   { transform: translateX(0); }
 
-.nav-item-custom {
+/* Brand */
+.sidebar-brand {
   display: flex;
-  gap: 10px;
-  padding: 10px;
-  color: rgba(255,255,255,0.7);
-  border-radius: 10px;
-  margin-bottom: 5px;
-  cursor: pointer;
-  text-decoration: none;
-}
-.nav-item-custom:hover, .nav-item-custom.router-link-active {
-  background: rgba(255,255,255,0.2);
-  color: white;
-}
-.user-avatar {
-  width: 35px;
-  height: 35px;
-  background: rgba(255,255,255,0.3);
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  border-radius: 10px;
+  padding: 1.5rem 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255,255,255,.15);
+  gap: 8px;
 }
+.brand-logo {
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255,255,255,.3);
+}
+.brand-name {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+
+/* Nav */
+.sidebar-nav { flex: 1; padding: .75rem 0; display: flex; flex-direction: column; gap: 3px; }
+.nav-item-custom {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 14px; border-radius: 10px;
+  color: rgba(255,255,255,.75); font-size: 14px; font-weight: 500;
+  text-decoration: none; cursor: pointer;
+  transition: all .15s;
+  margin: 0 6px;
+}
+.nav-item-custom i { font-size: 16px; flex-shrink: 0; }
+.nav-item-custom:hover,
+.nav-item-custom.router-link-active {
+  background: rgba(255,255,255,.22);
+  color: #fff;
+}
+
+/* Footer */
+.sidebar-footer {
+  border-top: 1px solid rgba(255,255,255,.15);
+  padding: .75rem .85rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar-user { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; }
+.user-avatar-box {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(255,255,255,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; color: #fff;
+  overflow: hidden; flex-shrink: 0;
+}
+.user-avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+.user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: 10.5px; color: rgba(255,255,255,.55); }
+.logout-btn {
+  background: rgba(255,255,255,.12); border: none; border-radius: 8px;
+  color: rgba(255,255,255,.7); width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; font-size: 16px;
+  transition: all .15s;
+}
+.logout-btn:hover { background: rgba(239,68,68,.3); color: #fff; }
 </style>

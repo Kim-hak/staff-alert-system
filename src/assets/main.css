@@ -1,15 +1,17 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&display=swap');
-
+* {
+  font-family: 'Kantumruy Pro', 'Noto Sans Khmer', sans-serif !important;
+}
 :root {
-  --primary-color: #84A98C;
-  --secondary-color: #52796F;
-  --bs-body-font-family: 'Kantumruy Pro', sans-serif;
+  --primary-color: #52796F;
+  --secondary-color: #78a081;
+  --bs-body-font-family: 'Koh Santepheap', serif;
  
 }
 
 body {
-  background: white;
   font-family: var(--bs-body-font-family);
-  font-size: 15px;
+  font-size: 16px;            
+  line-height: 1.6;           
+  -webkit-font-smoothing: antialiased; 
+  color: #2d3436;             
 }
