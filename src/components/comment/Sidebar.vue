@@ -17,7 +17,7 @@
     <RouterLink :to="{ name: 'adminUsers' }" class="nav-item-custom">
       <i class="bi bi-people-fill"></i><span>អ្នកប្រើប្រាស់</span>
     </RouterLink>
-    <RouterLink :to="{ name: 'adminStaff' }" class="nav-item-custom">
+    <RouterLink :to="{ name: 'adminGroups' }" class="nav-item-custom">
       <i class="bi bi-diagram-3-fill"></i><span>ក្រុម</span>
     </RouterLink>
     <RouterLink :to="{ name: 'adminReports' }" class="nav-item-custom">

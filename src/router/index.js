@@ -88,6 +88,7 @@ const router = createRouter({
   children: [
     { path: "dashboard", name: "adminDashboard", component: AdminDashboardView },
     { path: "users", name: "adminUsers", component: UsersView },
+    { path: "groups", name: "adminGroups", component: () => import('@/views/admin/GroupsView.vue') },
     { path: "staff", name: "adminStaff", component: StaffManagementView },
     { path: "reports", name: "adminReports", component: ReportsView },
     { path: "salary", name: "adminSalary", component: SalaryManagementView },
