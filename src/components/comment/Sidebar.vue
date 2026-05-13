@@ -42,12 +42,19 @@
   <RouterLink :to="{ name: 'managersGroups' }" class="nav-item-custom">
     <i class="bi bi-diagram-3-fill"></i><span>ក្រុម</span>
   </RouterLink>
+
   <RouterLink :to="{ name: 'managerReports' }" class="nav-item-custom">
     <i class="bi bi-file-earmark-bar-graph-fill"></i><span>របាយការណ៍</span>
+  </RouterLink>
+  <RouterLink
+    :to="{ name: 'managerNotifications' }" class="nav-item-custom">
+    <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
   </RouterLink>
   <RouterLink :to="{ name: 'managerProfile' }" class="nav-item-custom">
     <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
   </RouterLink>
+  <RouterLink :to="{ name: 'managerTelegram' }" class="nav-item-custom">
+    <i class="bi bi-telegram"></i><span>តេលេក្រាម</span></RouterLink>
 </template>
 
       <!-- ── STAFF (role.id === 3) ── -->
@@ -58,11 +65,12 @@
         <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
           <i class="bi bi-cash-stack"></i><span>ប្រាក់ខែ</span>
         </RouterLink>
-        <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
-          <i class="bi bi-bell-fill"></i><span>តេលេក្រាម</span>
-        </RouterLink>
+  
         <RouterLink to="/staff/profile" class="nav-item-custom">
           <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
+        </RouterLink>
+         <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
+          <i class="bi bi-bell-fill"></i><span>តេលេក្រាម</span>
         </RouterLink>
       </template>
 
