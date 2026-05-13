@@ -20,7 +20,59 @@ body {
   -webkit-font-smoothing: antialiased; 
   color: #2d3436;             
 }
+<<<<<<< HEAD
+/* Custom Toast Styling */
+.Vue-Toastification__toast--custom-success {
+  background-color: #5A9688 !important;
+  color: white;
+}
+
+/* Optional: change the progress bar color to match */
+.Vue-Toastification__progress-bar--custom-success {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+/* This makes the toast match your login button exactly */
+.custom-toast-success {
+  background-color: #5A9688 !important;
+  color: white !important;
+  font-size: 13px !important;
+  padding: 10px 16px !important;
+  border-radius: 8px !important;
+}
+
+/* Optional: Make the little progress bar at the bottom look nice too */
+.Vue-Toastification__progress-bar--custom-success {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Minimalist Teal Toast */
+.custom-toast-success {
+  background-color: #5A9688 !important; /* Your specific color */
+  color: white !important;
+  min-height: 45px !important;           /* Shorter height */
+  padding: 10px 15px !important;        /* Less padding */
+  font-size: 13px !important;            /* Smaller text */
+  border-radius: 10px !important;       /* Rounded corners */
+  width: auto !important;               /* Shrinks to fit text */
+  max-width: 280px !important;          /* Prevents it from being too wide */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Make the icon smaller to match */
+.custom-toast-success .Vue-Toastification__icon {
+  width: 16px !important;
+  height: 16px !important;
+  margin-right: 10px !important;
+}
+
+/* Thinner progress bar */
+.Vue-Toastification__progress-bar--custom-success {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  height: 2px !important;
+}
+=======
 
 .swal2-popup {
   font-family: 'Kantumruy Pro', sans-serif !important; /* ឬ Font ដែលអ្នកកំពុងប្រើ */
 }
+>>>>>>> 33295c598abdb91b3e4bc4f2fd0194e3718ffb3c

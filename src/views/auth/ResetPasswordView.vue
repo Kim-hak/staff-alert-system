@@ -13,7 +13,7 @@
         <div class="text-center mb-5">
           <div
             class="rounded-circle bg-success d-flex align-items-center justify-content-center mx-auto mb-3"
-            style="width: 70px; height: 70px"
+            style="width: 70px; height: 70px; background-color: #5A9688 !important;"
           >
             <span class="text-white fs-2">🔒</span>
           </div>
@@ -72,9 +72,10 @@
           <button
             type="submit"
             :disabled="loading || !hasToken"
-            class="btn btn-success w-100 py-2"
+            class="btn btn-success w-100 py-2 fw-semibold"
+            style="background-color: #5A9688; border-color: #5A9688;"
           >
-            {{ loading ? "កំពុងផ្លាស់ប្តូរពាក្យសម្ងាត់..." : "ប្តូរពាក្យសម្ងាត់" }}
+            {{ loading ? "កំពុងផ្លាស់ប្តូរ..." : "ប្តូរពាក្យសម្ងាត់" }}
           </button>
         </form>
       </div>
@@ -86,12 +87,12 @@
 import { ref, reactive, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/useAuth";
-import { useToastStore } from "@/stores/useToast";
+import { useToast } from "vue-toastification";
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
-const toast = useToast(); // 2. Initialize the toast hook
+const toast = useToast();
 
 const token = computed(() => route.query.token || "");
 const newPassword = ref("");
@@ -125,16 +126,21 @@ const handleResetPassword = async () => {
   try {
     await authStore.resetPassword(token.value, newPassword.value);
     
-    // 1. Show your successful toast alert
+    // 1. Show toast with your custom teal color
     toast.success("លេខសម្ងាត់ត្រូវបានផ្លាស់ប្តូរដោយជោគជ័យ!", {
       timeout: 3000,
-      position: "top-right"
+      position: "top-right",
+      toastClassName: "custom-toast-success" // Make sure this is in main.css
     });
+
+    // Clear inputs
     newPassword.value = "";
     confirmPassword.value = "";
-    // 2. USE REPLACE INSTEAD OF PUSH
-    // This removes the reset page from the history stack
-    router.replace("/"); 
+
+    // 2. Delay redirect slightly so toast is visible
+    setTimeout(() => {
+      router.replace("/"); 
+    }, 1500);
     
   } catch (error) {
     authStore.message_error = error?.message || "មានកំហុសពេលផ្លាស់ប្តូរពាក្យសម្ងាត់។";
@@ -143,3 +149,11 @@ const handleResetPassword = async () => {
   }
 };
 </script>
+
+<style scoped>
+/* Optional: Ensure the button looks nice with your theme */
+.btn-success:hover {
+  background-color: #4a7d71 !important;
+  border-color: #4a7d71 !important;
+}
+</style>
