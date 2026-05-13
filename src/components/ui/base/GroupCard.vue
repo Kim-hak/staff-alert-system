@@ -12,13 +12,14 @@
 
       <div class="flex-grow-1 text-start">
         <h5 class="fw-bold text-dark mb-1">{{ name }}</h5>
+        <p v-if="description" class="group-description text-muted small mb-2">{{ description }}</p>
         <p class="text-muted small mb-1">Manager: <span class="text-secondary">{{ managerName }}</span></p>
         <p class="text-muted small mb-0"><i class="bi bi-people me-1"></i> {{ membersCount }} members</p>
         <p class="text-muted small mt-2" style="font-size: 0.8rem;">Created: {{ createdAt }}</p>
       </div>
 
       <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-light">
-        <button class="btn btn-light text-secondary flex-grow-1 me-2 fw-medium btn-members">
+        <button class="btn btn-light text-secondary flex-grow-1 me-2 fw-medium btn-members" @click="$emit('members')">
           <i class="bi bi-people me-1"></i> Members
         </button>
         <div class="d-flex gap-1">
@@ -36,11 +37,12 @@ import BaseCard from './BaseCard.vue';
 defineProps({
   thumbnail: String,
   name: { type: String, required: true },
+  description: String,
   managerName: String,
   membersCount: { type: Number, default: 0 },
   createdAt: String
 });
-defineEmits(['edit', 'delete']);
+defineEmits(['edit', 'delete', 'members']);
 </script>
 
 <style scoped>
@@ -71,5 +73,11 @@ defineEmits(['edit', 'delete']);
 }
 .btn-action:hover {
   background-color: #f1f3f5;
+}
+.group-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 </style>

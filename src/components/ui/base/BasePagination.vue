@@ -4,7 +4,8 @@
       
       <li class="page-item" :class="{ disabled: currentPage === 1 }">
         <button class="page-link custom-page-link rounded-3 d-flex align-items-center justify-content-center" 
-                @click="$emit('change', currentPage - 1)">
+                :disabled="currentPage === 1"
+                @click="goToPage(currentPage - 1)">
           <i class="bi bi-chevron-left"></i>
         </button>
       </li>
@@ -12,14 +13,15 @@
       <li v-for="page in totalPages" :key="page" class="page-item">
         <button class="page-link custom-page-link rounded-3 fw-medium" 
                 :class="{ active: currentPage === page }" 
-                @click="$emit('change', page)">
+                @click="goToPage(page)">
           {{ page }}
         </button>
       </li>
       
       <li class="page-item" :class="{ disabled: currentPage === totalPages }">
         <button class="page-link custom-page-link rounded-3 d-flex align-items-center justify-content-center" 
-                @click="$emit('change', currentPage + 1)">
+                :disabled="currentPage === totalPages"
+                @click="goToPage(currentPage + 1)">
           <i class="bi bi-chevron-right"></i>
         </button>
       </li>
@@ -29,11 +31,19 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   currentPage: { type: Number, required: true },
   totalPages: { type: Number, required: true }
 });
-defineEmits(['change']);
+
+const emit = defineEmits(['change', 'change-page']);
+
+const goToPage = (page) => {
+  if (page < 1 || page > props.totalPages || page === props.currentPage) return;
+
+  emit('change-page', page);
+  emit('change', page);
+};
 </script>
 
 <style scoped>
@@ -59,5 +69,9 @@ defineEmits(['change']);
 .page-item.disabled .custom-page-link {
   background-color: transparent;
   color: #dee2e6;
+}
+.page-item.disabled .custom-page-link,
+.custom-page-link:disabled {
+  pointer-events: none;
 }
 </style>

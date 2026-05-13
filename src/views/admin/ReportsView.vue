@@ -1,264 +1,237 @@
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import { useReportStore } from '@/stores/useReportStore';
+import BasePagination from '@/components/ui/base/BasePagination.vue';
+import Swal from 'sweetalert2';
+
+const reportStore = useReportStore();
+const searchQuery = ref('');
+const currentPage = ref(1);
+const itemsPerPage = 6;
+const authStore = useAuthStore();
+
+onMounted(() => {
+  reportStore.fetchReports(); // វានឹងឆែក Role ដោយស្វ័យប្រវត្តក្នុង Store
+});
+
+// ទាញទិន្នន័យពេល Component បើកដំបូង
+onMounted(async () => {
+  await reportStore.fetchAllReports();
+});
+
+// ប្រើ Getter ពី Store ដើម្បីបង្ហាញលេខលើ Stat Cards
+const stats = computed(() => reportStore.reportStats);
+
+// Logic សម្រាប់ស្វែងរក
+const filteredReports = computed(() => {
+  const all = Array.isArray(reportStore.reports) ? reportStore.reports : [];
+  return all.filter(r => 
+    r.title?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    r.staff?.fullname?.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+// កាត់ទិន្នន័យបង្ហាញតាមទំព័រ
+const paginatedReports = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filteredReports.value.slice(start, start + itemsPerPage);
+});
+
+const totalPages = computed(() => Math.ceil(filteredReports.value.length / itemsPerPage) || 1);
+
+const handlePageChange = (page) => {
+  currentPage.value = page;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// មុខងារមើលលម្អិត
+const handleView = (report) => {
+  Swal.fire({
+    title: `<span class="text-success">${report.title}</span>`,
+    html: `
+      <div class="text-start border-top pt-3">
+        <p><strong>បុគ្គលិក:</strong> ${report.staff?.fullname}</p>
+        <p><strong>អ្នកគ្រប់គ្រង:</strong> ${report.manager?.fullname || 'មិនទាន់មាន'}</p>
+        <p><strong>ពិន្ទុវាយតម្លៃ:</strong> ${report.rating}/5</p>
+        <p><strong>មតិយោបល់:</strong> ${report.comment || 'គ្មាន'}</p>
+      </div>
+    `,
+    confirmButtonText: 'យល់ព្រម',
+    confirmButtonColor: '#2D6A4F'
+  });
+};
+
+// មុខងារលុប
+const handleDelete = async (id) => {
+  const result = await Swal.fire({
+    title: 'តើអ្នកប្រាកដទេ?',
+    text: "របាយការណ៍នេះនឹងត្រូវលុបចេញពីប្រព័ន្ធ!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#2D6A4F',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'បាទ លុបវា!',
+    cancelButtonText: 'បោះបង់',
+    reverseButtons: true
+  });
+
+  if (result.isConfirmed) {
+    const success = await reportStore.deleteReport(id);
+    if (success) {
+      Swal.fire({
+        title: 'លុបជោគជ័យ!',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    }
+  }
+};
+</script>
+
 <template>
-  <div class="dashboard-container">
-    <!-- Header -->
+  <div class="reports-container p-4">
+    <!-- ចំណងជើងផ្នែកខាងលើ -->
     <div class="mb-4">
-      <h3 class="fw-bold text-dark mb-1">Dashboard</h3>
-      <p class="text-muted small">Welcome back, <strong>{{ authStore.profile?.fullname || 'Admin' }}</strong>!</p>
+      <h2 class="fw-bold text-dark">របាយការណ៍ការងារ</h2>
+      <p class="text-muted">ពិនិត្យ និងគ្រប់គ្រងរាល់របាយការណ៍ការងារទាំងអស់ក្នុងប្រព័ន្ធ</p>
     </div>
 
-    <div v-if="store.isLoading" class="text-center py-5">
-      <div class="spinner-border text-success" role="status"></div>
-      <p class="text-muted mt-3 small">Loading dashboard data...</p>
+    <!-- ប្រអប់ស្វែងរក -->
+    <div class="row mb-4">
+      <div class="col-12 col-md-8">
+        <div class="input-group bg-white shadow-sm rounded-3">
+          <span class="input-group-text bg-white border-0 ps-3">
+            <i class="bi bi-search text-muted"></i>
+          </span>
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            class="form-control border-0 py-2" 
+            placeholder="ស្វែងរករបាយការណ៍តាមចំណងជើង ឬឈ្មោះបុគ្គលិក..."
+            @input="currentPage = 1"
+          >
+        </div>
+      </div>
     </div>
 
-    <div v-else>
-      <!-- Stat Cards -->
-      <div class="row g-3 mb-4">
-        <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card stat-teal">
-            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-            <div class="stat-num">{{ store.stats.totalUsers }}</div>
-            <div class="stat-label">Total Users</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card stat-blue">
-            <div class="stat-icon"><i class="bi bi-person-badge-fill"></i></div>
-            <div class="stat-num">{{ store.stats.totalManagers }}</div>
-            <div class="stat-label">Managers</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card stat-green">
-            <div class="stat-icon"><i class="bi bi-person-fill"></i></div>
-            <div class="stat-num">{{ store.stats.totalStaff }}</div>
-            <div class="stat-label">Staff</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card stat-orange">
-            <div class="stat-icon"><i class="bi bi-collection-fill"></i></div>
-            <div class="stat-num">{{ store.stats.totalGroups }}</div>
-            <div class="stat-label">Groups</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card stat-yellow">
-            <div class="stat-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
-            <div class="stat-num">{{ store.stats.submittedReports }}</div>
-            <div class="stat-label">Submitted</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card stat-purple">
-            <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
-            <div class="stat-num">{{ store.stats.reviewedReports }}</div>
-            <div class="stat-label">Reviewed</div>
-          </div>
+    <!-- ផ្នែក Stat Cards (ដូចក្នុង image_551820.png) -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-4">
+        <div class="stat-card card-pending shadow-sm p-4">
+          <div class="stat-label">រង់ចាំការពិនិត្យ </div>
+          <div class="stat-value text-warning">{{ stats.pending }}</div>
         </div>
       </div>
-
-      <!-- Charts row -->
-      <div class="row g-3 mb-4">
-        <div class="col-lg-8">
-          <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="fw-bold mb-0">Recent Users</h6>
-              <router-link :to="{ name: 'adminUsers' }" class="btn-link-custom">View All →</router-link>
-            </div>
-            <div v-if="store.recentUsers.length === 0" class="text-center text-muted py-3">
-              <i class="bi bi-inbox fs-3 d-block mb-2"></i> No users yet
-            </div>
-            <div v-else class="recent-list">
-              <div v-for="user in store.recentUsers" :key="user.id" class="recent-item">
-                <div class="d-flex align-items-center gap-3">
-                  <div class="mini-avatar">{{ getInitials(user.fullname) }}</div>
-                  <div>
-                    <div class="fw-semibold text-dark" style="font-size:0.88rem">{{ user.fullname }}</div>
-                    <div class="text-muted" style="font-size:0.78rem">{{ user.email }}</div>
-                  </div>
-                </div>
-                <span :class="`badge-mini ${getRoleBadge(user.role?.name)}`">
-                  {{ user.role?.name || 'STAFF' }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-4">
-          <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-            <h6 class="fw-bold mb-4">System Overview</h6>
-            <div class="mb-4">
-              <div class="d-flex justify-content-between mb-1">
-                <span class="text-muted small">Active Users</span>
-                <span class="fw-bold small">{{ store.quickStats.activeUsers }}%</span>
-              </div>
-              <div class="progress prog-thin">
-                <div class="progress-bar bg-success" :style="`width:${store.quickStats.activeUsers}%`"></div>
-              </div>
-            </div>
-            <div class="mb-4">
-              <div class="d-flex justify-content-between mb-1">
-                <span class="text-muted small">Reports Reviewed</span>
-                <span class="fw-bold small">{{ store.quickStats.reportCompletion }}%</span>
-              </div>
-              <div class="progress prog-thin">
-                <div class="progress-bar bg-primary" :style="`width:${store.quickStats.reportCompletion}%`"></div>
-              </div>
-            </div>
-            <div class="mb-2">
-              <div class="d-flex justify-content-between mb-1">
-                <span class="text-muted small">Group Coverage</span>
-                <span class="fw-bold small">{{ store.quickStats.groupCoverage }}%</span>
-              </div>
-              <div class="progress prog-thin">
-                <div class="progress-bar bg-warning" :style="`width:${store.quickStats.groupCoverage}%`"></div>
-              </div>
-            </div>
-
-            <!-- Summary -->
-            <div class="mt-4 pt-3 border-top">
-              <div class="d-flex justify-content-between mb-2">
-                <span class="text-muted small">Total Reports</span>
-                <strong class="small">{{ store.stats.submittedReports + store.stats.reviewedReports }}</strong>
-              </div>
-              <div class="d-flex justify-content-between">
-                <span class="text-muted small">Pending Review</span>
-                <strong class="small text-warning">{{ store.stats.submittedReports }}</strong>
-              </div>
-            </div>
-          </div>
+      <div class="col-md-4">
+        <div class="stat-card card-reviewed shadow-sm p-4">
+          <div class="stat-label">បានពិនិត្យរួចរាល់</div>
+          <div class="stat-value text-success">{{ stats.reviewed }}</div>
         </div>
       </div>
+      <div class="col-md-4">
+        <div class="stat-card card-total shadow-sm p-4">
+          <div class="stat-label">របាយការណ៍សរុប</div>
+          <div class="stat-value text-teal">{{ stats.total }}</div>
+        </div>
+      </div>
+    </div>
 
-      <!-- Recent Reports -->
-      <div class="card border-0 shadow-sm rounded-4 p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="fw-bold mb-0">Recent Performance Reports</h6>
-          <router-link :to="{ name: 'adminReports' }" class="btn-link-custom">View All →</router-link>
-        </div>
-        <div v-if="store.recentReports.length === 0" class="text-center text-muted py-3">
-          <i class="bi bi-file-earmark fs-3 d-block mb-2"></i> No reports yet
-        </div>
-        <div v-else class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
-            <thead style="background:#f8fbfc;">
-              <tr>
-                <th class="text-muted small fw-semibold border-0 px-3">Title</th>
-                <th class="text-muted small fw-semibold border-0">Rating</th>
-                <th class="text-muted small fw-semibold border-0">Status</th>
-                <th class="text-muted small fw-semibold border-0">Period</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="r in store.recentReports" :key="r.id">
-                <td class="px-3">
-                  <span class="fw-semibold text-dark" style="font-size:0.875rem">{{ r.title }}</span>
-                </td>
+    <!-- តារាងរបាយការណ៍ -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light-custom text-uppercase small fw-bold">
+            <tr>
+              <th class="ps-4">ល.រ </th>
+              <th>ចំណងជើង </th>
+              <th>បុគ្គលិក </th>
+              <th>អ្នកគ្រប់គ្រង </th>
+              <th>រយៈពេល</th>
+              <th>ស្ថានភាព </th>
+              <th>ថ្ងៃបញ្ជូន </th>
+              <th class="text-center pe-4">សកម្មភាព </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="reportStore.isLoading">
+              <td colspan="8" class="text-center py-5">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="mt-2 text-muted">កំពុងទាញទិន្នន័យ...</p>
+              </td>
+            </tr>
+            <template v-else>
+              <tr v-for="r in paginatedReports" :key="r.id" class="border-bottom">
+                <td class="ps-4 text-muted">{{ r.id }}</td>
+                <td class="fw-bold text-dark">{{ r.title }}</td>
+                <td>{{ r.staff?.fullname }}</td>
+                <td>{{ r.manager?.fullname || '—' }}</td>
+                <td>{{ r.reportPeriodStart ? new Date(r.reportPeriodStart).getFullYear() : '—' }}</td>
                 <td>
-                  <div class="d-flex gap-1">
-                    <i v-for="s in 5" :key="s" :class="`bi ${s <= r.rating ? 'bi-star-fill text-warning' : 'bi-star text-muted'}`" style="font-size:0.7rem"></i>
+                  <span :class="['status-badge', r.status === 'REVIEWED' ? 'bg-success-light' : 'bg-pending-light']">
+                    {{ r.status === 'REVIEWED' ? 'បានពិនិត្យ' : 'រង់ចាំពិនិត្យ' }}
+                  </span>
+                </td>
+                <td class="text-muted small">{{ new Date(r.createdAt).toLocaleDateString('km-KH') }}</td>
+                <td class="text-center pe-4">
+                  <div class="d-flex justify-content-center gap-2">
+                    <button @click="handleView(r)" class="btn-icon view-btn" title="មើលលម្អិត">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button @click="handleDelete(r.id)" class="btn-icon delete-btn" title="លុប">
+                      <i class="bi bi-trash"></i>
+                    </button>
                   </div>
                 </td>
-                <td>
-                  <span :class="`badge-mini ${getStatusBadge(r.status)}`">{{ r.status }}</span>
-                </td>
-                <td class="text-muted small">{{ formatDate(r.reportPeriodStart) }}</td>
               </tr>
-            </tbody>
-          </table>
-        </div>
+              <tr v-if="filteredReports.length === 0">
+                <td colspan="8" class="text-center py-5 text-muted">មិនមានទិន្នន័យរបាយការណ៍បង្ហាញទេ</td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
       </div>
+    </div>
+
+    <!-- ការបែងចែកទំព័រ -->
+    <div v-if="totalPages > 1" class="d-flex justify-content-center mt-4">
+      <BasePagination 
+        :total-pages="totalPages" 
+        :current-page="currentPage" 
+        @change-page="handlePageChange" 
+      />
     </div>
   </div>
 </template>
 
-<script setup>
-import { onMounted } from 'vue'
-import { useReportStore } from '@/stores/useReportStore'
-import { useAuthStore } from '@/stores/useAuth'
-
-
-
-const authStore = useAuthStore()
-
-onMounted(() => store.fetchDashboardData())
-
-const getInitials = (name) => {
-  if (!name) return '?'
-  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
-}
-const getRoleBadge = (role) => {
-  const r = String(role).toUpperCase()
-  if (r === 'ADMIN') return 'badge-warn'
-  if (r === 'MANAGER') return 'badge-blue'
-  return 'badge-gray'
-}
-const getStatusBadge = (s) => {
-  if (s === 'REVIEWED') return 'badge-green'
-  if (s === 'SUBMITTED') return 'badge-warn'
-  return 'badge-gray'
-}
-const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-GB') : '—'
-</script>
-
 <style scoped>
-.dashboard-container { padding: 1.5rem; background: #f8fbfc; min-height: 100vh; }
+.reports-container { background-color: #f8fbfc; min-height: 100vh; }
 
-/* Stat Cards */
-.stat-card {
-  border-radius: 14px;
-  padding: 1.2rem 1rem;
-  text-align: center;
-  border: 1px solid transparent;
-  transition: transform 0.18s;
+/* Stat Cards Styling */
+.stat-card { background: white; border-radius: 15px; border-left: 6px solid #2D6A4F; transition: transform 0.2s; }
+.stat-card:hover { transform: translateY(-5px); }
+.stat-label { font-size: 0.85rem; font-weight: 600; color: #6c757d; }
+.stat-value { font-size: 2.5rem; font-weight: 800; margin-top: 5px; }
+
+.text-teal { color: #20c997; }
+
+/* Table Styling */
+.table-light-custom { background-color: #f1f4f6; color: #495057; }
+.table-light-custom th { padding: 15px 10px; border: none; }
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
-.stat-card:hover { transform: translateY(-3px); }
-.stat-icon { font-size: 1.6rem; margin-bottom: 0.4rem; }
-.stat-num { font-size: 1.6rem; font-weight: 800; line-height: 1; }
-.stat-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+.bg-success-light { background-color: #d1f2eb; color: #16a085; }
+.bg-pending-light { background-color: #fef5e7; color: #f39c12; }
 
-.stat-teal   { background: #e8f5f2; border-color: #c8e6de; color: #2e7d6e; }
-.stat-blue   { background: #e8eaf6; border-color: #c5cae9; color: #303f9f; }
-.stat-green  { background: #e8f5e9; border-color: #c8e6c9; color: #2e7d32; }
-.stat-orange { background: #fbe9e7; border-color: #ffccbc; color: #bf360c; }
-.stat-yellow { background: #fff8e1; border-color: #ffecb3; color: #e65100; }
-.stat-purple { background: #f3e5f5; border-color: #e1bee7; color: #6a1b9a; }
-
-/* Recent list */
-.recent-list { display: flex; flex-direction: column; gap: 0.6rem; }
-.recent-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0.6rem 0.5rem;
-  border-radius: 10px;
-  transition: background 0.15s;
-}
-.recent-item:hover { background: #f8fafb; }
-
-.mini-avatar {
-  width: 34px; height: 34px;
-  background: #e8f4f1; color: #4D7C6E;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 0.75rem;
-  flex-shrink: 0;
-}
-
-/* Badges */
-.badge-mini {
-  padding: 0.25em 0.7em;
-  font-size: 0.68rem; font-weight: 600;
-  border-radius: 50rem; text-transform: uppercase;
-  white-space: nowrap;
-}
-.badge-green { background: #e8f5e9; color: #2e7d32; }
-.badge-warn  { background: #fff8e1; color: #f57f17; }
-.badge-blue  { background: #e8eaf6; color: #3949ab; }
-.badge-gray  { background: #f5f5f5; color: #616161; }
-
-.prog-thin { height: 7px; border-radius: 10px; background: #f0f2f5; }
-.progress-bar { border-radius: 10px; }
-.btn-link-custom { color: #4D7C6E; font-size: 0.82rem; font-weight: 600; text-decoration: none; }
-.btn-link-custom:hover { text-decoration: underline; }
+/* Action Buttons */
+.btn-icon { background: none; border: none; font-size: 1.2rem; transition: 0.2s; }
+.view-btn { color: #2D6A4F; }
+.delete-btn { color: #e74c3c; }
+.btn-icon:hover { transform: scale(1.2); }
 </style>
