@@ -20,7 +20,6 @@ body {
   -webkit-font-smoothing: antialiased; 
   color: #2d3436;             
 }
-<<<<<<< HEAD
 /* Custom Toast Styling */
 .Vue-Toastification__toast--custom-success {
   background-color: #5A9688 !important;
@@ -70,9 +69,3 @@ body {
   background-color: rgba(255, 255, 255, 0.4) !important;
   height: 2px !important;
 }
-=======
-
-.swal2-popup {
-  font-family: 'Kantumruy Pro', sans-serif !important; /* ឬ Font ដែលអ្នកកំពុងប្រើ */
-}
->>>>>>> 33295c598abdb91b3e4bc4f2fd0194e3718ffb3c
