@@ -4,7 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+<<<<<<< HEAD
     "dev": "vite ",
+=======
+    "dev": "vite --open",
+>>>>>>> 133010ef25bac5a2859a4f1677d11688d5d2fd11
     "build": "vite build",
     "preview": "vite preview"
   },
