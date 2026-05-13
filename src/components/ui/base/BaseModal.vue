@@ -1,18 +1,14 @@
 <template>
   <Teleport to="body">
     <Transition name="modal-fade">
-      <div
-        v-if="show"
-        class="custom-modal-overlay"
-        @click.self="$emit('close')"
-      >
+      <div v-if="show" class="custom-modal-overlay" @click.self="emit('close')">
         <div class="custom-modal-dialog">
           <div class="custom-modal-content">
-            <div
-              class="custom-modal-header d-flex justify-content-between align-items-center"
-            >
+
+            <div class="custom-modal-header d-flex justify-content-between align-items-center">
               <h5 class="mb-0 fw-bold">{{ title }}</h5>
-              <button @click="$emit('close')" class="btn-close-custom">
+
+              <button class="btn-close-custom" @click="emit('close')">
                 <i class="bi bi-x-lg"></i>
               </button>
             </div>
@@ -24,6 +20,7 @@
             <div v-if="$slots.footer" class="custom-modal-footer">
               <slot name="footer" />
             </div>
+
           </div>
         </div>
       </div>
@@ -32,8 +29,12 @@
 </template>
 
 <script setup>
-defineProps({ show: Boolean, title: String });
-defineEmits(["close"]);
+defineProps({
+  show: Boolean,
+  title: String
+})
+
+const emit = defineEmits(['close'])
 </script>
 
 <style scoped>
