@@ -29,7 +29,8 @@ import ManagerDashboardView from '@/views/manager/ManagerDashboardView.vue'
 import MyGroupsView from '@/views/manager/MyGroupsView.vue'
 import MyReportsView from "@/views/manager/MyReportsView.vue";
 import MyStaffsView from "@/views/manager/MyStaffsView.vue";
-
+import ManagerNotificationView from '@/views/manager/ManagerNotificationView.vue';
+import ManagerTelegram from '@/views/manager/ManagerTelegram.vue';
 // ==========================================
 // 5. Staff Views
 // ==========================================
@@ -38,6 +39,7 @@ import SalaryView from "@/views/staff/SalaryView.vue";
 import ProfileView from "@/views/staff/ProfileView.vue"; // នេះជា Profile របស់ Staff
 import AdminProfile from '@/views/admin/AdminProfile.vue';
 import TelegramView from '@/views/staff/TelegramView.vue';
+
 
 
 // ==========================================
@@ -108,6 +110,8 @@ const router = createRouter({
     { path: 'staffs', name: 'managerStaffs', component: MyStaffsView },
     // បន្ថែម Route នេះដើម្បីឱ្យ Link ប្រវត្តិរូបដើរ
     { path: 'profile', name: 'managerProfile', component: AdminProfile }, 
+    {path: 'notifications', name: 'managerNotifications', component:ManagerNotificationView},
+    {path: 'telegram', name: 'managerTelegram', component:ManagerTelegram}
   ],
 },
 

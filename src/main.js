@@ -28,6 +28,7 @@ const toastOptions = {
     rtl: false
 }
 
+
 app.use(pinia)
 app.use(router)
 app.use(Toast, toastOptions)
