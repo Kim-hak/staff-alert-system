@@ -81,64 +81,46 @@ const router = createRouter({
     meta: { requiresAuth: true },
   },
 
-    // --- ADMIN Routes ---
-    {
-      path: "/admin",
-      component: DashboardLayout,
-      redirect: { name: "adminDashboard" },
-      children: [
-        {
-          path: "dashboard",
-          name: "adminDashboard",
-          component: AdminDashboardView,
-        },
-        { path: "users", name: "adminUsers", component: UsersView },
-        { path: "staff", name: "adminStaff", component: StaffManagementView },
-        { path: "reports", name: "adminReports", component: ReportsView },
-        {
-          path: "salary",
-          name: "adminSalary",
-          component: SalaryManagementView,
-        },
-        { path : "profile", name: "adminProfile", component: AdminProfile },
-      ],
-    },
+// --- ADMIN Routes ---
+{
+  path: "/admin",
+  component: DashboardLayout,
+  children: [
+    { path: "dashboard", name: "adminDashboard", component: AdminDashboardView },
+    { path: "users", name: "adminUsers", component: UsersView },
+    { path: "staff", name: "adminStaff", component: StaffManagementView },
+    { path: "reports", name: "adminReports", component: ReportsView },
+    { path: "salary", name: "adminSalary", component: SalaryManagementView },
+    { path: "profile", name: "adminProfile", component: AdminProfile },
+  ],
+},
 
-    // --- MANAGER Routes ---
-    {
-      path: "/manager",
-      component: DashboardLayout,
-      redirect: { name: "managerDashboard" },
-      children: [
-        // សូម Uncomment ពេលអ្នកបង្កើត File ទាំងនេះរួច
-        { path: 'dashboard', name: 'managerDashboard', component: ManagerDashboardView },
-        { path: 'managerGroups', name: 'managersGroups', component: MyGroupsView },
-        { path: 'managerReports', name: 'managerReports', component: MyReportsView },
-        { path: 'managerStaffs', name: 'managerStaffs', component: MyStaffsView },
+// --- MANAGER Routes ---
+{
+  path: "/manager",
+  component: DashboardLayout,
+  children: [
+    { path: 'dashboard', name: 'managerDashboard', component: ManagerDashboardView },
+    // ចំណាំ៖ កែឈ្មោះ name ឱ្យដូចក្នុង Sidebar (managersGroups)
+    { path: 'groups', name: 'managersGroups', component: MyGroupsView }, 
+    { path: 'reports', name: 'managerReports', component: MyReportsView },
+    { path: 'staffs', name: 'managerStaffs', component: MyStaffsView },
+    // បន្ថែម Route នេះដើម្បីឱ្យ Link ប្រវត្តិរូបដើរ
+    { path: 'profile', name: 'managerProfile', component: AdminProfile }, 
+  ],
+},
 
-        
-        
-      ],
-    },
-
-    // --- STAFF Routes ---
-    {
-      path: "/staff",
-      component: DashboardLayout,
-      redirect: { name: "staffDashboard" },
-      children: [
-        {
-          path: "dashboard",
-          name: "staffDashboard",
-          component: StaffDashboardView,
-        },
-        { path: "salary", name: "staffSalary", component: SalaryView },
-        { path: "profile", name: "staffProfile", component: ProfileView },
-        { path: "telegram", name: "staffTelegram", component: TelegramView },
-
-       
-      ],
-    },
+// --- STAFF Routes ---
+{
+  path: "/staff",
+  component: DashboardLayout,
+  children: [
+    { path: "dashboard", name: "staffDashboard", component: StaffDashboardView },
+    { path: "salary", name: "staffSalary", component: SalaryView },
+    { path: "profile", name: "staffProfile", component: ProfileView },
+    { path: "telegram", name: "staffTelegram", component: TelegramView },
+  ],
+},
 
     // --- SHARED PROFILE Route (ប្រើសម្រាប់ Admin/Manager បើពួកគេមាន Profile រួម) ---
     {
