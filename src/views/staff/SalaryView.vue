@@ -104,10 +104,10 @@
         </div>
       </div> -->
 
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm salary-history-card">
         <div class="card-header bg-white fw-semibold">ប្រវត្តិការផ្លាស់ប្តូរ</div>
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
+        <div class="table-responsive salary-table-wrap">
+          <table class="table align-middle mb-0 salary-table">
             <thead class="table-light">
               <tr>
                 <th>កាលបរិច្ឆេទអនុវត្ត</th>
@@ -119,13 +119,13 @@
             </thead>
             <tbody>
               <tr v-for="salary in salaryHistory" :key="salary.id">
-                <td>{{ formatDate(salary.effectiveDate) }}</td>
-                <td>{{ formatCurrency(salary.previousSalary) }}</td>
-                <td>{{ formatCurrency(salary.newSalary) }}</td>
-                <td :class="getChangeClass(salary)">
+                <td data-label="កាលបរិច្ឆេទអនុវត្ត">{{ formatDate(salary.effectiveDate) }}</td>
+                <td data-label="ប្រាក់បៀវត្សរ៍មុន">{{ formatCurrency(salary.previousSalary) }}</td>
+                <td data-label="ប្រាក់បៀវត្សរ៍ថ្មី" class="fw-semibold">{{ formatCurrency(salary.newSalary) }}</td>
+                <td data-label="ការផ្លាស់ប្តូរ" :class="getChangeClass(salary)">
                   {{ formatSalaryChange(salary) }}
                 </td>
-                <td class="text-muted">{{ salary.changeReason || 'មិនមាន' }}</td>
+                <td data-label="មូលហេតុ" class="text-muted salary-reason">{{ salary.changeReason || 'មិនមាន' }}</td>
               </tr>
             </tbody>
           </table>
@@ -234,3 +234,93 @@ const getChangeClass = (salary) => {
 
 onMounted(fetchSalaryHistory)
 </script>
+
+<style scoped>
+.salary-history-card {
+  overflow: hidden;
+}
+
+.salary-table {
+  min-width: 760px;
+}
+
+.salary-table th {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.salary-table td {
+  color: #334155;
+  border-color: #eef2f7;
+  vertical-align: middle;
+}
+
+.salary-reason {
+  min-width: 180px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+  .salary-table-wrap {
+    overflow-x: visible;
+  }
+
+  .salary-table {
+    min-width: 0;
+  }
+
+  .salary-table thead {
+    display: none;
+  }
+
+  .salary-table,
+  .salary-table tbody,
+  .salary-table tr,
+  .salary-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .salary-table tbody {
+    padding: 0.75rem;
+    background: #f8fafc;
+  }
+
+  .salary-table tr {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+    padding: 0.35rem 0;
+    box-shadow: 0 0.125rem 0.5rem rgba(15, 23, 42, 0.05);
+  }
+
+  .salary-table tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .salary-table td {
+    display: grid;
+    grid-template-columns: minmax(8.5rem, 42%) minmax(0, 1fr);
+    gap: 0.75rem;
+    border: 0;
+    padding: 0.55rem 0.9rem;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .salary-table td::before {
+    content: attr(data-label);
+    color: #64748b;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .salary-reason {
+    min-width: 0;
+  }
+}
+</style>
