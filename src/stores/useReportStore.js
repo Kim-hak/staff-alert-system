@@ -59,6 +59,64 @@ export const useReportStore = defineStore('report', {
         console.error("Delete Error:", err);
         return false;
       }
-    }
-  }
+    },
+
+    async createReport(payload) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const res = await api.post("/performance-reports", payload);
+        await this.fetchMyReports(); // Refresh list after creation
+        return res.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || "Failed to create report";
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async fetchReportById(id) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        console.log("Fetching report by ID:", id);
+        const res = await api.get(`/performance-reports/${id}`);
+        console.log("Report by ID response:", res.data);
+        return res.data?.data || res.data;
+      } catch (error) {
+        console.error("Fetch report by ID error:", error);
+        this.error =
+          error.response?.data?.message || "Failed to fetch report details";
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async submitReport(id) {
+      try {
+        const res = await api.put(`/performance-reports/${id}/submit`);
+        await this.fetchMyReports();
+        return res.data;
+      } catch (error) {
+        throw error.response?.data || error;
+      }
+    },
+
+    async updateReport(id, payload) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const res = await api.put(`/performance-reports/${id}`, payload);
+        await this.fetchMyReports(); // Refresh list after update
+        return res.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || "Failed to update report";
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+  },
 });
