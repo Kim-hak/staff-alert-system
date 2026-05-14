@@ -33,7 +33,7 @@
           <button
             class="btn btn-white-glass rounded-circle p-2 shadow-sm action-btn"
             @click.stop="$refs.fileInput.click()"
-            title="ប្តូររូបភាព"
+            title="Change thumbnail"
           >
             <i class="bi bi-camera-fill"></i>
           </button>
@@ -41,7 +41,7 @@
             v-if="thumbnail"
             class="btn btn-danger-glass rounded-circle p-2 shadow-sm action-btn"
             @click.stop="$emit('delete-thumbnail')"
-            title="លុបរូបភាព"
+            title="Delete thumbnail"
           >
             <i class="bi bi-trash-fill"></i>
           </button>
@@ -65,7 +65,7 @@
           <button
             class="btn btn-light-custom btn-sm rounded-circle p-2 shadow-sm"
             @click="$emit('edit')"
-            title="កែសម្រួលក្រុម"
+            title="Edit group"
           >
             <i class="bi bi-pencil-square"></i>
           </button>
@@ -103,7 +103,7 @@
         <button
           class="btn btn-light-custom btn-sm rounded-pill px-3 fw-medium transition-all"
         >
-          មើលសមាជិក <i class="bi bi-arrow-right ms-1"></i>
+          View members <i class="bi bi-arrow-right ms-1"></i>
         </button>
       </div>
     </div>
