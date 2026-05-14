@@ -1,65 +1,80 @@
-import { defineStore } from 'pinia'
-import api from '@/api/api'
+import { defineStore } from "pinia";
+import api from "@/api/api";
 
-const normalizeGroups = (payload) => {
-  if (Array.isArray(payload?.data?.items)) {
-    return payload.data.items
-  }
-
-  if (Array.isArray(payload?.data)) {
-    return payload.data
-  }
-
-  if (Array.isArray(payload?.items)) {
-    return payload.items
-  }
-
-  return []
-}
-
-export const useGroupStore = defineStore('group', {
+export const useGroupStore = defineStore("groups", {
   state: () => ({
-    groups: [],
+    myGroups: [],
     loading: false,
-    error: null
+    error: null,
   }),
-
   actions: {
-    async fetchGroups(params = {}) {
-      this.loading = true
-      this.error = null
-
+    async fetchMyGroups() {
+      this.loading = true;
+      this.error = null;
       try {
-        const response = await api.get('/groups', {
-          params: {
-            _page: 1,
-            _per_page: 10,
-            ...params
-          }
-        })
-
-        this.groups = normalizeGroups(response.data)
+        const res = await api.get("/groups/mine");
+        this.myGroups = res.data?.data || [];
       } catch (error) {
-        this.groups = []
-        this.error = error.response?.data?.message || 'Failed to load groups'
-        console.error('Fetch groups error:', error)
+        this.error = error.response?.data?.message || "Failed to fetch groups";
+        console.error("Error fetching groups:", error);
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
-
-    async deleteGroup(id) {
-      this.error = null
-
+    async createGroup(data) {
+      this.loading = true;
+      this.error = null;
       try {
-        await api.delete(`/groups/${id}`)
-        this.groups = this.groups.filter((group) => group.id !== id)
-        return true
+        console.log("Creating group with data:", data);
+        const res = await api.post("/groups", data);
+        console.log("Create response:", res.data);
+        await this.fetchMyGroups(); // Refresh list after creation
+        return res.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Failed to delete group'
-        console.error('Delete group error:', error)
-        return false
+        console.error("Create group error details:", error.response || error);
+        this.error = error.response?.data?.message || "Failed to create group";
+        throw error;
+      } finally {
+        this.loading = false;
       }
-    }
-  }
-})
+    },
+    async updateGroup(id, data) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await api.put(`/groups/${id}`, data);
+        await this.fetchMyGroups(); // Refresh list after update
+        return res.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || "Failed to update group";
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    async updateThumbnail(id, file) {
+      const formData = new FormData();
+      formData.append("thumbnail", file);
+      try {
+        const res = await api.post(`/groups/${id}/thumbnail`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        await this.fetchMyGroups();
+        return res.data;
+      } catch (error) {
+        throw error.response?.data?.message || "Failed to update thumbnail";
+      }
+    },
+    async deleteThumbnail(id) {
+      try {
+        const res = await api.delete(`/groups/${id}/thumbnail`);
+        await this.fetchMyGroups();
+        return res.data;
+      } catch (error) {
+        throw error.response?.data?.message || "Failed to delete thumbnail";
+      }
+    },
+  },
+});
