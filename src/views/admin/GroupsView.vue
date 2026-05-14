@@ -319,6 +319,26 @@ const handleAddMembers = async () => {
   }
 };
 
+const handleUploadThumbnail = async (group, file) => {
+  const success = await groupStore.uploadGroupThumbnail(group.id, file);
+
+  if (success) {
+    Swal.fire({
+      title: 'Thumbnail updated!',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  } else {
+    Swal.fire({
+      title: 'Upload failed',
+      text: groupStore.error || 'Could not upload thumbnail. Please try again.',
+      icon: 'error',
+      confirmButtonColor: '#2D6A4F'
+    });
+  }
+};
+
 const handleDelete = async (id) => {
   const result = await Swal.fire({
     title: 'Are you sure?',
@@ -395,6 +415,7 @@ const handleDelete = async (id) => {
             @members="openMembersModal(group)"
             @edit="openEditModal(group)"
             @delete="handleDelete(group.id)"
+            @upload-thumbnail="handleUploadThumbnail(group, $event)"
           />
         </div>
 
