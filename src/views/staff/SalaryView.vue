@@ -29,8 +29,8 @@
             title="ប្រាក់បៀវត្សរ៍មុន"
             :value="formatCurrency(latestSalary.previousSalary)"
             icon="bi bi-cash-stack"
-            iconColor="text-warning"
-            bgColor="bg-light-orange"
+            iconColor="text-success"
+            bgColor="bg-light-green"
           />
         </div>
 
@@ -60,49 +60,7 @@
         </div>
       </div>
 
-      <!-- <div class="row g-4 mb-4">
-        <div class="col-lg-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header text-white" style="background-color: var(--primary-color)">ប្រាក់បៀវត្សរ៍មុន</div>
-            <div class="card-body">
-              <div class="d-flex justify-content-between border-bottom py-2">
-                <span class="text-muted">ចំនួនទឹកប្រាក់</span>
-                <strong>{{ formatCurrency(latestSalary.previousSalary) }}</strong>
-              </div>
-
-              <div class="d-flex justify-content-between py-2">
-                <span class="text-muted">ការផ្លាស់ប្តូរ</span>
-                <strong :class="changeClass">{{ formattedSalaryChange }}</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header text-white" style="background-color: var(--primary-color)">
-              ប្រាក់បៀវត្សរ៍បច្ចុប្បន្ន
-            </div>
-
-            <div class="card-body">
-              <div class="d-flex justify-content-between border-bottom py-2">
-                <span class="text-muted">ចំនួនទឹកប្រាក់</span>
-                <strong>{{ formatCurrency(latestSalary.newSalary) }}</strong>
-              </div>
-
-              <div class="d-flex justify-content-between border-bottom py-2">
-                <span class="text-muted">កាលបរិច្ឆេទអនុវត្ត</span>
-                <strong>{{ formatDate(latestSalary.effectiveDate) }}</strong>
-              </div>
-
-              <div class="d-flex justify-content-between py-2 gap-3">
-                <span class="text-muted">មូលហេតុ</span>
-                <strong class="text-end">{{ latestSalary.changeReason || 'មិនមាន' }}</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> -->
+     
 
       <div class="card border-0 shadow-sm salary-history-card">
         <div class="card-header bg-white fw-semibold">ប្រវត្តិការផ្លាស់ប្តូរ</div>

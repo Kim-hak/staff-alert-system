@@ -106,160 +106,74 @@
           View members <i class="bi bi-arrow-right ms-1"></i>
         </button>
       </div>
+
+      <div class="flex-grow-1 text-start">
+        <h5 class="fw-bold text-dark mb-1">{{ name }}</h5>
+        <p v-if="description" class="group-description text-muted small mb-2">{{ description }}</p>
+        <p class="text-muted small mb-1">Manager: <span class="text-secondary">{{ managerName }}</span></p>
+        <p class="text-muted small mb-0"><i class="bi bi-people me-1"></i> {{ membersCount }} members</p>
+        <p class="text-muted small mt-2" style="font-size: 0.8rem;">Created: {{ createdAt }}</p>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-light">
+        <button class="btn btn-light text-secondary flex-grow-1 me-2 fw-medium btn-members" @click="$emit('members')">
+          <i class="bi bi-people me-1"></i> Members
+        </button>
+        <div class="d-flex gap-1">
+          <button class="btn btn-light text-success btn-action" @click="$emit('edit')"><i class="bi bi-pencil-square"></i></button>
+          <button class="btn btn-light text-danger btn-action" @click="$emit('delete')"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
     </div>
   </BaseCard>
 </template>
 
 <script setup>
-import BaseCard from "./BaseCard.vue";
+import BaseCard from './BaseCard.vue';
 
-const props = defineProps({
+defineProps({
   thumbnail: String,
   name: { type: String, required: true },
   description: String,
   managerName: String,
   membersCount: { type: Number, default: 0 },
-  createdAt: String,
+  createdAt: String
 });
-const emit = defineEmits([
-  "edit",
-  "delete",
-  "update-thumbnail",
-  "delete-thumbnail",
-]);
-
-const onFileSelected = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    emit("update-thumbnail", file);
-  }
-};
+defineEmits(['edit', 'delete', 'members']);
 </script>
 
 <style scoped>
-.group-card-wrapper {
-  transition:
-    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.3s ease;
+.group-thumbnail {
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
 }
-
-.group-image-container {
-  height: 180px;
-  background-color: #f8f9fa;
-}
-
-.group-img {
-  transition: transform 0.5s ease;
-}
-
-.group-card-wrapper:hover .group-img {
-  transform: scale(1.08);
-}
-
-.thumbnail-actions {
+.upload-btn {
   opacity: 0;
-  transform: translateY(-5px);
-  transition: all 0.3s ease;
-  z-index: 5;
+  transition: opacity 0.3s;
 }
-
-.group-image-container:hover .thumbnail-actions {
+.group-thumbnail:hover .upload-btn {
   opacity: 1;
-  transform: translateY(0);
 }
-
-.action-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-}
-
-.btn-white-glass {
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  color: #333;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.btn-white-glass:hover {
-  background: white;
-  transform: scale(1.05);
-}
-
-.btn-danger-glass {
-  background: rgba(220, 53, 69, 0.9);
-  border: none;
-  color: white;
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
-}
-
-.btn-danger-glass:hover {
-  background: #dc3545;
-  transform: scale(1.05);
-}
-
-.text-primary-custom {
-  color: #52796f;
-}
-
-.bg-primary-subtle {
-  background-color: rgba(82, 121, 111, 0.1);
-}
-
-.manager-avatar-mini {
-  width: 32px;
-  height: 32px;
-  font-size: 0.8rem;
-}
-
-.extra-small {
-  font-size: 0.75rem;
-}
-
-.group-name {
-  font-size: 1.1rem;
-  letter-spacing: -0.01em;
-}
-
-.group-description {
-  min-height: 3em;
-  line-height: 1.5;
-}
-
-.btn-light-custom {
+.btn-members {
   background-color: #f8f9fa;
-  border: 1px solid #eee;
-  color: #52796f;
-  font-size: 0.85rem;
+  border: none;
+  transition: all 0.2s;
 }
-
-.btn-light-custom:hover {
-  background-color: #52796f;
-  color: white;
-  border-color: #52796f;
+.btn-members:hover {
+  background-color: #e2e6ea;
+  color: #4D7C6E !important;
 }
-
-.line-clamp-1 {
+.btn-action {
+  border: none;
+  background: transparent;
+}
+.btn-action:hover {
+  background-color: #f1f3f5;
+}
+.group-description {
   display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.inset-0 {
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
 }
 </style>
