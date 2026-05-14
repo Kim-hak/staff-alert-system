@@ -69,3 +69,7 @@ body {
   background-color: rgba(255, 255, 255, 0.4) !important;
   height: 2px !important;
 }
+
+.swal2-popup {
+  font-family: 'Kantumruy Pro', sans-serif !important; /* ឬ Font ដែលអ្នកកំពុងប្រើ */
+}
