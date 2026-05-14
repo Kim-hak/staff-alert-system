@@ -154,6 +154,122 @@
       </form>
     </BaseModal>
 
+    <!-- Edit Report Modal -->
+    <BaseModal
+      :show="showEditReportModal"
+      title="កែសម្រួលរបាយការណ៍"
+      @close="closeEditReportModal"
+    >
+      <form @submit.prevent="handleUpdateReport">
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ចំណងជើងរបាយការណ៍</label>
+          <input
+            v-model="editReport.title"
+            type="text"
+            class="form-control rounded-3"
+          />
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-medium text-dark">បុគ្គលិក</label>
+            <select v-model="editReport.staffId" class="form-select rounded-3">
+              <option value="" disabled>ជ្រើសរើសបុគ្គលិក</option>
+              <option
+                v-for="staff in userStore.myStaff"
+                :key="staff.id"
+                :value="staff.id"
+              >
+                {{ staff.fullname }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-medium text-dark">Rating (1-5)</label>
+            <select v-model="editReport.rating" class="form-select rounded-3">
+              <option value="" disabled>ជ្រើសរើស Rating</option>
+              <option v-for="n in 5" :key="n" :value="n">
+                {{ n }} - {{ getRatingLabel(n) }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-medium text-dark">ថ្ងៃចាប់ផ្តើម</label>
+            <input
+              v-model="editReport.reportPeriodStart"
+              type="date"
+              class="form-control rounded-3"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-medium text-dark">ថ្ងៃបញ្ចប់</label>
+            <input
+              v-model="editReport.reportPeriodEnd"
+              type="date"
+              class="form-control rounded-3"
+            />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">សង្ខេបការងារ</label>
+          <textarea
+            v-model="editReport.performanceSummary"
+            class="form-control rounded-3"
+            rows="2"
+          ></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">សមិទ្ធផល</label>
+          <textarea
+            v-model="editReport.achievement"
+            class="form-control rounded-3"
+            rows="2"
+          ></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ចំណុចត្រូវកែលម្អ</label>
+          <textarea
+            v-model="editReport.areaForImprove"
+            class="form-control rounded-3"
+            rows="2"
+          ></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-medium text-dark">មតិយោបល់</label>
+          <textarea
+            v-model="editReport.comment"
+            class="form-control rounded-3"
+            rows="2"
+          ></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button
+            type="button"
+            class="btn btn-light rounded-pill px-4"
+            @click="closeEditReportModal"
+          >
+            បោះបង់
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary-custom rounded-pill px-4"
+            :disabled="isSubmitting"
+          >
+            <span
+              v-if="isSubmitting"
+              class="spinner-border spinner-border-sm me-1"
+            ></span>
+            រក្សាទុកការកែប្រែ
+          </button>
+        </div>
+      </form>
+    </BaseModal>
+
     <!-- Reports Table Card -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
       <div class="table-responsive">
@@ -213,7 +329,11 @@
               <td class="pe-4 py-3 text-center">
                 <div class="d-flex justify-content-center gap-2">
                   <template v-if="report.status === 'DRAFT'">
-                    <button class="btn btn-icon text-primary" title="Edit">
+                    <button
+                      class="btn btn-icon text-primary"
+                      title="Edit"
+                      @click="openEditReportModal(report)"
+                    >
                       <i class="bi bi-pencil-square"></i>
                     </button>
                     <button
@@ -409,9 +529,23 @@ const reportToDeleteId = ref(null);
 const showSubmitConfirmModal = ref(false);
 const reportToSubmitId = ref(null);
 const showReportDetailModal = ref(false);
+const showEditReportModal = ref(false);
 const selectedReport = ref(null);
 
 const newReport = reactive({
+  title: "",
+  performanceSummary: "",
+  achievement: "",
+  areaForImprove: "",
+  comment: "",
+  rating: "",
+  staffId: "",
+  reportPeriodStart: "",
+  reportPeriodEnd: "",
+});
+
+const editReport = reactive({
+  id: null,
   title: "",
   performanceSummary: "",
   achievement: "",
@@ -441,6 +575,67 @@ const closeCreateReportModal = () => {
     reportPeriodStart: "",
     reportPeriodEnd: "",
   });
+};
+
+const openEditReportModal = (report) => {
+  Object.assign(editReport, {
+    id: report.id,
+    title: report.title || "",
+    performanceSummary: report.performanceSummary || "",
+    achievement: report.achievement || "",
+    areaForImprove: report.areaForImprove || "",
+    comment: report.comment || "",
+    rating: report.rating || "",
+    staffId: report.staffId || report.staff?.id || "",
+    reportPeriodStart: report.reportPeriodStart
+      ? report.reportPeriodStart.split("T")[0]
+      : "",
+    reportPeriodEnd: report.reportPeriodEnd
+      ? report.reportPeriodEnd.split("T")[0]
+      : "",
+  });
+  showEditReportModal.value = true;
+};
+
+const closeEditReportModal = () => {
+  showEditReportModal.value = false;
+};
+
+const handleUpdateReport = async () => {
+  isSubmitting.value = true;
+  try {
+    const { id, ...rawPayload } = editReport;
+
+    // Clean payload: Convert types and remove empty fields
+    const payload = {};
+    Object.keys(rawPayload).forEach((key) => {
+      const value = rawPayload[key];
+      // API Update usually doesn't allow changing staffId
+      if (key === "staffId") return;
+
+      if (value !== "" && value !== null && value !== undefined) {
+        if (key === "rating") {
+          payload[key] = Number(value);
+        } else {
+          payload[key] = value;
+        }
+      }
+    });
+
+    await reportStore.updateReport(id, payload);
+    toast.success("បានកែសម្រួលរបាយការណ៍ដោយជោគជ័យ!");
+    closeEditReportModal();
+    fetchReports();
+  } catch (error) {
+    console.error("Update error details:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "បរាជ័យក្នុងការកែសម្រួលរបាយការណ៍";
+    toast.error(errorMessage);
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 const handleCreateReport = async () => {
