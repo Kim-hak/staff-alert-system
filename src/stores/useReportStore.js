@@ -113,5 +113,20 @@ export const useReportStore = defineStore("reports", {
         throw error.response?.data || error;
       }
     },
+
+    async updateReport(id, payload) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const res = await api.put(`/performance-reports/${id}`, payload);
+        await this.fetchMyReports(); // Refresh list after update
+        return res.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || "Failed to update report";
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    },
   },
 });
