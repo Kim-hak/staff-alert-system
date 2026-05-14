@@ -53,14 +53,15 @@ const emit = defineEmits(['close'])
 }
 .custom-modal-dialog {
   width: 100%;
-  max-width: 500px;
+  max-width: 500px; /* កែសម្រួលទំហំ Modal ឱ្យតូចជាងមុន */
   padding: 1rem;
 }
 .custom-modal-content {
   background: white;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow-y: auto; /* បន្ថែម scrollbar */
+  max-height: 90vh; /* កំណត់កម្ពស់អតិបរមា */
 }
 .custom-modal-header {
   background-color: #4d7c6e;
