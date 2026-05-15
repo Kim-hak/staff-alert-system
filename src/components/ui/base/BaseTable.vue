@@ -41,7 +41,7 @@
         </tr>
 
         <tr v-else-if="!data || data.length === 0">
-          <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-5 text-muted">
+          <td :colspan="columns + ($slots.actions ? 1 : 0)" class="text-center py-5 text-muted">
             <i class="bi bi-inbox fs-2 d-block mb-2 text-light-muted"></i> No data available
           </td>
         </tr>

@@ -1,3 +1,4 @@
+
 <template>
   <div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center">
@@ -14,7 +15,8 @@
       </BaseButton>
     </div>
     <!-- search bar -->
-    <BaseSearchBar class="mb-4" v-model="search" :items="arcticleStore.allArcticles" labelKey="fullname" @select="onSelectUser">
+    <BaseSearchBar class="mb-4" v-model="search" :items="arcticleStore.allArcticles" labelKey="fullname"
+      @select="onSelectUser">
     </BaseSearchBar>
     <!-- table -->
     <BaseTable :columns="col" :data="arcticleStore.allArcticles" :loading="arcticleStore.loading">
@@ -26,7 +28,7 @@
         <span class="text-primary">{{ item.email }}</span>
       </template>
 
-      <template #role_name="{ item }">
+      <template #role_name="{ item }"> 
         <span class="badge  active-color">{{
           item.role?.name }}</span>
       </template>
@@ -93,8 +95,11 @@
       </form>
 
       <template #footer>
+        <BaseButton><template #default>
+            រក្សាទុក
+          </template></BaseButton>
         <button class="btn btn-secondary" @click="ishow = false">
-          Close
+          បោះបង់
         </button>
       </template>
     </BaseModal>
