@@ -87,8 +87,8 @@ const doLogout = () => {
     text: "អ្នកនឹងត្រូវចាកចេញពីប្រព័ន្ធ!",
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#2D6A4F', // ពណ៌បៃតងចាស់ (AlertGo Style)
-    cancelButtonColor: '#d33',
+    confirmButtonColor: '#d33', 
+    cancelButtonColor: '#2D6A4F',
     confirmButtonText: 'បាទ ចាកចេញ!',
     cancelButtonText: 'បោះបង់',
     reverseButtons: true,

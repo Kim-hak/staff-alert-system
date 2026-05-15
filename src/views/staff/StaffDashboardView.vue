@@ -1,26 +1,48 @@
 <template>
   <div class="staff-dashboard fade-in">
     <div class="row g-4 mb-4">
-      <div class="col-sm-6 col-xl-3">
-        <StatCard title="ប្រាក់បៀវត្សរ៍" :value="currentSalary" icon="bi bi-wallet2" icon-color="text-success"
-          bg-color="bg-light-green" />
+      <div class="col-sm-6 col-xl-4">
+        <StatCard
+          title="ប្រាក់បៀវត្សរ៍"
+          :value="currentSalary"
+          icon="bi bi-wallet2"
+          icon-color="text-success"
+          bg-color="bg-light-blue"
+        />
       </div>
 
-      <div class="col-sm-6 col-xl-3">
-        <StatCard title="កាលបរិច្ឆេទចូលធ្វើការ" :value="hireDate" icon="bi bi-calendar-check" icon-color="text-warning"
-          bg-color="bg-light-orange" />
+      <div class="col-sm-6 col-xl-4">
+        <StatCard
+          title="កាលបរិច្ឆេទចូលធ្វើការ"
+          :value="hireDate"
+          icon="bi bi-calendar-check"
+          icon-color="text-success"
+          bg-color="bg-light-blue"
+        />
       </div>
 
-      <div class="col-sm-6 col-xl-3">
-        <StatCard title="ស្ថានភាព" :value="profileStatus" icon="bi bi-person-check" icon-color="text-primary"
-          bg-color="bg-light-blue" />
+      <div class="col-sm-6 col-xl-4">
+        <StatCard
+          title="ស្ថានភាព"
+          :value="profileStatus"
+          icon="bi bi-person-check"
+          icon-color="text-success"
+          bg-color="bg-light-blue"
+        />
       </div>
 
-      <div class="col-sm-6 col-xl-3">
-        <StatCard title="ការផ្លាស់ប្តូរប្រាក់បៀវត្សរ៍" :value="formattedSalaryChange" :value-color="salaryChangeTextColor"
-          :subtitle="changeLabel" :subtitle-class="changeClass" icon="bi bi-graph-up-arrow"
-          :icon-color="salaryChangeIconColor" bg-color="bg-light-purple" />
-      </div>
+      <!-- <div class="col-sm-6 col-xl-3">
+        <StatCard
+          title="ការផ្លាស់ប្តូរប្រាក់បៀវត្សរ៍"
+          :value="formattedSalaryChange"
+          :value-color="salaryChangeTextColor"
+          :subtitle="changeLabel"
+          :subtitle-class="changeClass"
+          icon="bi bi-graph-up-arrow"
+          :icon-color="salaryChangeIconColor"
+          bg-color="bg-light-purple"
+        />
+      </div> -->
     </div>
 
     <div v-if="errorMessage" class="alert alert-danger border-0 shadow-sm" role="alert">

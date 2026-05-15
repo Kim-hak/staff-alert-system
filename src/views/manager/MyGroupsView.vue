@@ -74,6 +74,158 @@
       </form>
     </BaseModal>
 
+    <!-- Members Management Modal -->
+    <BaseModal
+      :show="showMembersModal"
+      :title="'គ្រប់គ្រងសមាជិក - ' + (selectedGroup?.name || '')"
+      @close="closeMembersModal"
+      size="lg"
+    >
+      <div class="members-management">
+        <!-- Add Member Section -->
+        <div class="mb-5">
+          <label class="form-label fw-bold text-dark mb-3"
+            >បន្ថែមសមាជិកថ្មី</label
+          >
+
+          <div v-if="availableStaff.length > 0" class="row g-3 mb-4">
+            <div
+              v-for="staff in availableStaff"
+              :key="staff.id"
+              class="col-12 col-md-6"
+            >
+              <div
+                class="member-selection-card d-flex align-items-center justify-content-between p-3 rounded-4 border transition-all cursor-pointer"
+                :class="{ selected: selectedStaffIds.includes(staff.id) }"
+                @click="toggleStaffSelection(staff.id)"
+              >
+                <div class="d-flex align-items-center gap-3">
+                  <div
+                    class="member-avatar-mini bg-light-success text-success rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                  >
+                    {{
+                      (staff.fullname || staff.name || staff.username)?.charAt(
+                        0,
+                      )
+                    }}
+                  </div>
+                  <div class="overflow-hidden">
+                    <h6 class="mb-0 fw-bold text-dark text-truncate">
+                      {{ staff.fullname || staff.name || staff.username }}
+                    </h6>
+                    <small class="text-muted text-truncate d-block">{{
+                      staff.email || staff.username
+                    }}</small>
+                  </div>
+                </div>
+                <div class="selection-indicator">
+                  <i
+                    class="bi"
+                    :class="
+                      selectedStaffIds.includes(staff.id)
+                        ? 'bi-check-circle-fill text-success'
+                        : 'bi-circle text-muted opacity-25'
+                    "
+                  ></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            v-else-if="!groupStore.staffsLoading"
+            class="text-center py-4 bg-light rounded-4 border border-dashed mb-4"
+          >
+            <p class="text-muted mb-0 small">មិនមានបុគ្គលិកសម្រាប់បន្ថែមទេ</p>
+          </div>
+
+          <button
+            class="btn btn-primary-custom w-100 py-3 rounded-4 shadow-sm transition-all d-flex align-items-center justify-content-center gap-2"
+            @click="handleAddMembers"
+            :disabled="selectedStaffIds.length === 0 || isSubmittingMember"
+          >
+            <span
+              v-if="isSubmittingMember"
+              class="spinner-border spinner-border-sm"
+            ></span>
+            <span
+              >បន្ថែមសមាជិកដែលបានជ្រើសរើសចំនួន
+              {{ selectedStaffIds.length }}</span
+            >
+          </button>
+
+          <p
+            v-if="groupStore.staffsLoading"
+            class="text-center mt-3 text-muted small"
+          >
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            កំពុងទាញយកបញ្ជីបុគ្គលិក...
+          </p>
+        </div>
+
+        <!-- Current Members List -->
+        <div>
+          <label class="form-label fw-bold text-dark mb-3">
+            សមាជិកបច្ចុប្បន្ន ({{ selectedGroup?.members?.length || 0 }})
+          </label>
+
+          <div v-if="selectedGroup?.members?.length > 0" class="row g-3">
+            <div
+              v-for="member in selectedGroup.members"
+              :key="member.id"
+              class="col-12 col-md-6"
+            >
+              <div
+                class="member-display-card d-flex align-items-center justify-content-between p-3 rounded-4 border bg-light-subtle transition-all"
+              >
+                <div class="d-flex align-items-center gap-3">
+                  <div
+                    class="member-avatar-mini bg-white shadow-sm border rounded-circle d-flex align-items-center justify-content-center fw-bold text-muted"
+                  >
+                    {{
+                      (
+                        member.fullname ||
+                        member.name ||
+                        member.username
+                      )?.charAt(0)
+                    }}
+                  </div>
+                  <div class="overflow-hidden">
+                    <h6 class="mb-0 fw-bold text-dark text-truncate">
+                      {{ member.fullname || member.name || member.username }}
+                    </h6>
+                    <small class="text-muted text-truncate d-block">{{
+                      member.email || member.username
+                    }}</small>
+                  </div>
+                </div>
+                <button
+                  class="btn btn-link text-danger p-1 rounded-circle hover-bg-danger-light"
+                  @click="handleRemoveMember(member.id)"
+                  :disabled="isSubmittingMember"
+                  title="លុបសមាជិក"
+                >
+                  <i class="bi bi-x-circle-fill fs-5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            v-else
+            class="text-center py-5 bg-light rounded-4 border border-dashed"
+          >
+            <div class="text-muted mb-2">
+              <i class="bi bi-people display-6 opacity-25"></i>
+            </div>
+            <p class="text-muted mb-0">
+              មិនទាន់មានសមាជិកនៅក្នុងក្រុមនេះនៅឡើយទេ
+            </p>
+          </div>
+        </div>
+      </div>
+    </BaseModal>
+
     <!-- Toolbar Section -->
     <section
       class="toolbar-section bg-white rounded-4 p-3 shadow-sm border border-light-subtle mb-5"
@@ -119,21 +271,6 @@
         <p class="text-muted fw-medium animate-pulse">កំពុងទាញយកទិន្នន័យ...</p>
       </div>
 
-      <!-- Error State -->
-      <div v-else-if="groupStore.error" class="error-state text-center py-5">
-        <div class="error-icon-wrapper mb-3 mx-auto">
-          <i class="bi bi-exclamation-triangle text-danger display-4"></i>
-        </div>
-        <h5 class="text-dark fw-bold">មានបញ្ហាបច្ចេកទេស</h5>
-        <p class="text-muted mb-4">{{ groupStore.error }}</p>
-        <button
-          @click="groupStore.fetchMyGroups()"
-          class="btn btn-outline-secondary rounded-pill px-4"
-        >
-          <i class="bi bi-arrow-clockwise me-1"></i> ព្យាយាមម្តងទៀត
-        </button>
-      </div>
-
       <!-- Empty State -->
       <div
         v-else-if="filteredGroups.length === 0"
@@ -176,6 +313,7 @@
             :members-count="group.memberCount"
             :created-at="formatDate(group.createdAt)"
             @edit="openEditModal(group)"
+            @members="openMembersModal(group)"
             @update-thumbnail="(file) => handleUpdateThumbnail(group.id, file)"
             @delete-thumbnail="handleDeleteThumbnail(group.id)"
             class="h-100 hover-lift shadow-sm-hover"
@@ -188,12 +326,12 @@
 
 <script setup>
 import { ref, onMounted, computed, reactive } from "vue";
-import { useGroupStore } from "@/stores/useGroupStore";
+import { useGroupManagerStore } from "@/stores/useGroupManagerStore";
 import GroupCard from "@/components/ui/base/GroupCard.vue";
 import BaseModal from "@/components/ui/base/BaseModal.vue";
 import { useToast } from "vue-toastification";
 
-const groupStore = useGroupStore();
+const groupStore = useGroupManagerStore();
 const toast = useToast();
 const searchQuery = ref("");
 const showModal = ref(false);
@@ -201,10 +339,25 @@ const isEditing = ref(false);
 const currentGroupId = ref(null);
 const isSubmitting = ref(false);
 
+// Members management state
+const showMembersModal = ref(false);
+const selectedGroup = ref(null);
+const selectedStaffIds = ref([]);
+const isSubmittingMember = ref(false);
+
 const groupForm = reactive({
   name: "",
   description: "",
 });
+
+const toggleStaffSelection = (id) => {
+  const index = selectedStaffIds.value.indexOf(id);
+  if (index === -1) {
+    selectedStaffIds.value.push(id);
+  } else {
+    selectedStaffIds.value.splice(index, 1);
+  }
+};
 
 const openCreateModal = () => {
   isEditing.value = false;
@@ -224,6 +377,86 @@ const openEditModal = (group) => {
 
 const closeModal = () => {
   showModal.value = false;
+};
+
+const openMembersModal = async (group) => {
+  selectedGroup.value = group;
+  showMembersModal.value = true;
+  selectedStaffIds.value = [];
+
+  try {
+    // Fetch fresh group details to get full members list
+    const details = await groupStore.fetchGroupById(group.id);
+    if (details) {
+      selectedGroup.value = details;
+    }
+
+    // Always fetch staffs to ensure the list is fresh
+    await groupStore.fetchMyStaffs();
+  } catch (error) {
+    toast.error("មិនអាចទាញយកព័ត៌មានសមាជិកបានទេ");
+  }
+};
+
+const closeMembersModal = () => {
+  showMembersModal.value = false;
+  selectedGroup.value = null;
+  selectedStaffIds.value = [];
+};
+
+const availableStaff = computed(() => {
+  if (!selectedGroup.value) return [];
+  const memberIds =
+    selectedGroup.value.members?.map((m) =>
+      String(m.id || m.userId || m.staffId),
+    ) || [];
+  return groupStore.myStaffs.filter(
+    (staff) => !memberIds.includes(String(staff.id)),
+  );
+});
+
+const handleAddMembers = async () => {
+  if (selectedStaffIds.value.length === 0 || !selectedGroup.value) return;
+
+  isSubmittingMember.value = true;
+  try {
+    // API: POST {{baseUrl}}/groups/{{groupId}}/members
+    // Body: { "userIds": [selectedStaffIds] }
+    await groupStore.addGroupMembers(
+      selectedGroup.value.id,
+      selectedStaffIds.value,
+    );
+    // Update local selectedGroup reference
+    selectedGroup.value = groupStore.myGroups.find(
+      (g) => g.id === selectedGroup.value.id,
+    );
+    selectedStaffIds.value = [];
+    toast.success("បានបន្ថែមសមាជិកដោយជោគជ័យ!");
+  } catch (error) {
+    toast.error(error.response?.data?.message || "បរាជ័យក្នុងការបន្ថែមសមាជិក");
+  } finally {
+    isSubmittingMember.value = false;
+  }
+};
+
+const handleRemoveMember = async (userId) => {
+  if (!selectedGroup.value) return;
+
+  isSubmittingMember.value = true;
+  try {
+    // API: DELETE {{baseUrl}}/groups/{{groupId}}/members
+    // Body: { "userIds": [userId] }
+    await groupStore.removeGroupMembers(selectedGroup.value.id, [userId]);
+    // Update local selectedGroup reference
+    selectedGroup.value = groupStore.myGroups.find(
+      (g) => g.id === selectedGroup.value.id,
+    );
+    toast.success("បានលុបសមាជិកដោយជោគជ័យ!");
+  } catch (error) {
+    toast.error(error.response?.data?.message || "បរាជ័យក្នុងការលុបសមាជិក");
+  } finally {
+    isSubmittingMember.value = false;
+  }
 };
 
 const handleSubmit = async () => {
@@ -278,7 +511,7 @@ const handleUpdateThumbnail = async (id, file) => {
     await groupStore.updateThumbnail(id, file);
     toast.success("បានប្តូររូបភាពដោយជោគជ័យ!");
   } catch (error) {
-    toast.error(error);
+    toast.error(groupStore.error || "បរាជ័យក្នុងការប្តូររូបភាព");
   }
 };
 
@@ -287,12 +520,15 @@ const handleDeleteThumbnail = async (id) => {
     await groupStore.deleteThumbnail(id);
     toast.success("បានលុបរូបភាពដោយជោគជ័យ!");
   } catch (error) {
-    toast.error(error);
+    toast.error(groupStore.error || "បរាជ័យក្នុងការលុបរូបភាព");
   }
 };
 
 onMounted(async () => {
   await groupStore.fetchMyGroups();
+  if (groupStore.error) {
+    toast.error(groupStore.error);
+  }
 });
 </script>
 
@@ -416,5 +652,52 @@ onMounted(async () => {
 
 .min-vh-50 {
   min-height: 50vh;
+}
+
+/* Members Management Styles */
+.member-selection-card,
+.member-display-card {
+  border-color: #e9ecef !important;
+  background-color: white;
+  height: 100%;
+}
+
+.member-selection-card:hover {
+  border-color: #52796f !important;
+  background-color: #f4faf9;
+}
+
+.member-selection-card.selected {
+  border-color: #52796f !important;
+  background-color: #f4faf9;
+  box-shadow: 0 4px 12px rgba(82, 121, 111, 0.08);
+}
+
+.member-avatar-mini {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.bg-light-success {
+  background-color: rgba(82, 121, 111, 0.1);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-bg-danger-light:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545 !important;
+}
+
+.selection-indicator i {
+  font-size: 1.25rem;
+}
+
+.member-display-card {
+  background-color: #f8f9fa;
 }
 </style>

@@ -6,7 +6,7 @@
         class="custom-modal-overlay"
         @click.self="$emit('close')"
       >
-        <div class="custom-modal-dialog">
+        <div class="custom-modal-dialog" :class="sizeClass">
           <div class="custom-modal-content">
             <div class="custom-modal-header d-flex justify-content-between align-items-center">
               <h5 class="mb-0 fw-bold khmer-font">{{ title }}</h5>
@@ -24,6 +24,7 @@
             <div v-if="$slots.footer" class="custom-modal-footer">
               <slot name="footer" />
             </div>
+
           </div>
         </div>
       </div>
@@ -32,8 +33,25 @@
 </template>
 
 <script setup>
-defineProps({ show: Boolean, title: String });
+import { computed } from "vue";
+
+const props = defineProps({
+  show: Boolean,
+  title: String,
+  size: {
+    type: String,
+    default: "md",
+  },
+});
 defineEmits(["close"]);
+
+const sizeClass = computed(() => {
+  return {
+    "modal-sm": props.size === "sm",
+    "modal-lg": props.size === "lg",
+    "modal-xl": props.size === "xl",
+  };
+});
 </script>
 
 <style scoped>
@@ -54,12 +72,23 @@ defineEmits(["close"]);
   width: 100%;
   max-width: 500px;
   padding: 1rem;
+  transition: max-width 0.3s ease;
+}
+.custom-modal-dialog.modal-sm {
+  max-width: 350px;
+}
+.custom-modal-dialog.modal-lg {
+  max-width: 800px;
+}
+.custom-modal-dialog.modal-xl {
+  max-width: 1140px;
 }
 .custom-modal-content {
   background: white;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow-y: auto; /* បន្ថែម scrollbar */
+  max-height: 90vh; /* កំណត់កម្ពស់អតិបរមា */
 }
 .custom-modal-header {
   background-color: #4d7c6e;
