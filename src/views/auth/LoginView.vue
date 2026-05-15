@@ -86,6 +86,7 @@ import { useAuthStore } from '@/stores/useAuth';
 import { useRouter } from 'vue-router';
 import { validator } from '@/composables/useValitor';
 import { useToast } from "vue-toastification";
+import { getRoleKey } from '@/utils/roles';
 
 const { validatField, error } = validator();
 const router = useRouter();
@@ -97,6 +98,17 @@ const form = reactive({
   password: ''
 });
 const loading = ref(false);
+
+const dashboardRouteByRole = {
+  admin: 'adminDashboard',
+  manager: 'managerDashboard',
+  staff: 'staffDashboard'
+};
+
+function getDashboardRoute(profile) {
+  const routeName = dashboardRouteByRole[getRoleKey(profile)];
+  return routeName ? { name: routeName } : { name: 'Login' };
+}
 
 // Validation Functions
 function validationEmail() {
@@ -140,10 +152,7 @@ async function handleLogin() {
         toastClassName: "custom-toast-success" 
       });
 
-      // Redirect logic
-      const roleId = authStore.profile.role.id;
-      if (roleId === 1 || roleId === 2) router.replace({ name: 'managerDashboard' });
-      else router.replace({ name: 'staffDashboard' });
+      router.replace(getDashboardRoute(authStore.profile));
     }
   } catch (error) {
     toast.error(authStore.message_error || "Login failed!");

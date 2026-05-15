@@ -65,7 +65,7 @@ const displayName = computed(() => {
 const initial = computed(() => displayName.value.charAt(0).toUpperCase())
 
 const roleLabel = computed(() => {
-  switch (authStore.profile?.role?.id) {
+  switch (Number(authStore.profile?.role?.id)) {
     case 1: return 'ADMIN'
     case 2: return 'MANAGER'
     case 3: return 'STAFF'
@@ -74,10 +74,11 @@ const roleLabel = computed(() => {
 })
 
 const profileRoute = computed(() => {
-  switch (authStore.profile?.role?.id) {
-    case 1: return '/admin/profile'
-    case 2: return '/manager/profile'
-    default: return '/admin/profile'
+  switch (Number(authStore.profile?.role?.id)) {
+    case 1: return { name: 'adminProfile' }
+    case 2: return { name: 'managerProfile' }
+    case 3: return { name: 'staffProfile' }
+    default: return { name: 'Login' }
   }
 })
 

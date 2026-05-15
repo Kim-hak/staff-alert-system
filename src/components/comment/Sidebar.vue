@@ -23,7 +23,7 @@
     <RouterLink :to="{ name: 'adminReports' }" class="nav-item-custom">
       <i class="bi bi-file-earmark-bar-graph-fill"></i><span>របាយការណ៍</span>
     </RouterLink>
-    <RouterLink :to="{ name: 'adminSalary' }" class="nav-item-custom">
+    <RouterLink :to="{ name: 'adminNotifications' }" class="nav-item-custom">
       <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
     </RouterLink>
     <RouterLink :to="{ name: 'adminProfile' }" class="nav-item-custom">
@@ -65,8 +65,11 @@
         <RouterLink :to="{ name: 'staffSalary' }" class="nav-item-custom">
           <i class="bi bi-cash-stack"></i><span>ប្រាក់ខែ</span>
         </RouterLink>
+        <RouterLink :to="{ name: 'staffNotifications' }" class="nav-item-custom">
+          <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
+        </RouterLink>
   
-        <RouterLink to="/staff/profile" class="nav-item-custom">
+        <RouterLink :to="{ name: 'staffProfile' }" class="nav-item-custom">
           <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
         </RouterLink>
          <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
@@ -108,7 +111,7 @@ defineProps({ isOpen: Boolean, isMobile: Boolean })
 const authStore = useAuthStore()
 const router    = useRouter()
 
-const roleId = computed(() => authStore.profile?.role?.id)
+const roleId = computed(() => Number(authStore.profile?.role?.id))
 
 const userName = computed(() => {
   const p = authStore.profile

@@ -21,6 +21,7 @@ import UsersView from "@/views/admin/UsersView.vue";
 import StaffManagementView from "@/views/admin/StaffManagementView.vue";
 import ReportsView from "@/views/admin/ReportsView.vue";
 import SalaryManagementView from "@/views/admin/SalaryManagementView.vue";
+import NotificationsView from "@/views/admin/NotificationsView.vue";
 
 // ==========================================
 // 4. Manager Views (សូមប្តូរឈ្មោះតាម File ជាក់ស្តែង)
@@ -40,7 +41,23 @@ import ProfileView from "@/views/staff/ProfileView.vue"; // នេះជា Prof
 import AdminProfile from '@/views/admin/AdminProfile.vue';
 import TelegramView from '@/views/staff/TelegramView.vue';
 
+const DASHBOARD_ROUTE_BY_ROLE = {
+  admin: 'adminDashboard',
+  manager: 'managerDashboard',
+  staff: 'staffDashboard',
+}
 
+const PROFILE_ROUTE_BY_ROLE = {
+  admin: 'adminProfile',
+  manager: 'managerProfile',
+  staff: 'staffProfile',
+}
+
+function routeByRole(profile, routesByRole = DASHBOARD_ROUTE_BY_ROLE) {
+  const roleKey = getRoleKey(profile)
+  const routeName = routesByRole[roleKey]
+  return routeName ? { name: routeName } : { name: 'Login' }
+}
 
 // ==========================================
 // 6. Global Profile View (សម្រាប់ Admin/Manager)
@@ -87,6 +104,8 @@ const router = createRouter({
 {
   path: "/admin",
   component: DashboardLayout,
+  redirect: { name: "adminDashboard" },
+  meta: { requiresAuth: true, roles: ['admin'] },
   children: [
     { path: "dashboard", name: "adminDashboard", component: AdminDashboardView },
     { path: "users", name: "adminUsers", component: UsersView },
@@ -94,6 +113,7 @@ const router = createRouter({
     { path: "staff", name: "adminStaff", component: StaffManagementView },
     { path: "reports", name: "adminReports", component: ReportsView },
     { path: "salary", name: "adminSalary", component: SalaryManagementView },
+    { path: "notifications", name: "adminNotifications", component: NotificationsView },
     { path: "profile", name: "adminProfile", component: AdminProfile },
   ],
 },
@@ -102,6 +122,8 @@ const router = createRouter({
 {
   path: "/manager",
   component: DashboardLayout,
+  redirect: { name: "managerDashboard" },
+  meta: { requiresAuth: true, roles: ['manager'] },
   children: [
     { path: 'dashboard', name: 'managerDashboard', component: ManagerDashboardView },
     // ចំណាំ៖ កែឈ្មោះ name ឱ្យដូចក្នុង Sidebar (managersGroups)
@@ -119,9 +141,12 @@ const router = createRouter({
 {
   path: "/staff",
   component: DashboardLayout,
+  redirect: { name: "staffDashboard" },
+  meta: { requiresAuth: true, roles: ['staff'] },
   children: [
     { path: "dashboard", name: "staffDashboard", component: StaffDashboardView },
     { path: "salary", name: "staffSalary", component: SalaryView },
+    { path: "notifications", name: "staffNotifications", component: NotificationsView },
     { path: "profile", name: "staffProfile", component: ProfileView },
     { path: "telegram", name: "staffTelegram", component: TelegramView },
   ],
@@ -130,11 +155,8 @@ const router = createRouter({
     // --- SHARED PROFILE Route (ប្រើសម្រាប់ Admin/Manager បើពួកគេមាន Profile រួម) ---
     {
       path: "/profile",
-      component: DashboardLayout,
-      children: [
-        /* { path: '', name: 'globalProfile', component: GlobalProfileView }
-         */
-      ],
+      name: "profileRedirect",
+      meta: { requiresAuth: true },
     },
 
     // --- 404 Not Found ---
@@ -145,12 +167,12 @@ const router = createRouter({
     },
   ],
 })
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore();
   const token = localStorage.getItem('token'); // Direct read for instant check
 
   // If no token exists and the page isn't 'Login' or 'Forgot Password'
-  if (!token && !to.meta.guest) {
+  if (!token && (to.meta.requiresAuth || !to.meta.guest)) {
     authStore.logoutLocal(); // Clear Pinia state
     return { name: 'Login' };
   }
@@ -167,19 +189,17 @@ router.beforeEach(async (to, from) => {
 
   // Redirect away from Login if already authenticated
   if (token && to.meta.guest) {
-    return redirectByRole(authStore.profile?.role?.id);
+    return routeByRole(authStore.profile);
   }
-  const roleId = authStore.profile?.role?.id;
+  const roleKey = getRoleKey(authStore.profile);
 
-  // If a logged-in user tries to go to the Login page manually
-  if (to.name === 'Login' && token) {
-    return redirectByRole(roleId); // 👈 This is where it was crashing
+  if (to.name === 'profileRedirect') {
+    return routeByRole(authStore.profile, PROFILE_ROUTE_BY_ROLE);
   }
-  function redirectByRole(roleId) {
-  if (roleId === 1) return { name: 'adminDashboard' };
-  if (roleId === 2) return { name: 'managerDashboard' };
-  if (roleId === 3) return { name: 'staffDashboard' };
-  return { name: 'Login' }; // Default fallback
-}
+
+  if (to.meta.roles && !to.meta.roles.includes(roleKey)) {
+    return routeByRole(authStore.profile);
+  }
+
 });
 export default router
