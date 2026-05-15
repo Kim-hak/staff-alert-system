@@ -8,11 +8,12 @@
       >
         <div class="custom-modal-dialog" :class="sizeClass">
           <div class="custom-modal-content">
-
-            <div class="custom-modal-header d-flex justify-content-between align-items-center">
+            <div
+              class="custom-modal-header d-flex justify-content-between align-items-center"
+            >
               <h5 class="mb-0 fw-bold">{{ title }}</h5>
 
-              <button class="btn-close-custom" @click="emit('close')">
+              <button class="btn-close-custom" @click="$emit('close')">
                 <i class="bi bi-x-lg"></i>
               </button>
             </div>
@@ -24,7 +25,6 @@
             <div v-if="$slots.footer" class="custom-modal-footer">
               <slot name="footer" />
             </div>
-
           </div>
         </div>
       </div>
