@@ -1,8 +1,12 @@
 <template>
   <Teleport to="body">
     <Transition name="modal-fade">
-      <div v-if="show" class="custom-modal-overlay" @click.self="emit('close')">
-        <div class="custom-modal-dialog">
+      <div
+        v-if="show"
+        class="custom-modal-overlay"
+        @click.self="$emit('close')"
+      >
+        <div class="custom-modal-dialog" :class="sizeClass">
           <div class="custom-modal-content">
 
             <div class="custom-modal-header d-flex justify-content-between align-items-center">
@@ -29,12 +33,25 @@
 </template>
 
 <script setup>
-defineProps({
-  show: Boolean,
-  title: String
-})
+import { computed } from "vue";
 
-const emit = defineEmits(['close'])
+const props = defineProps({
+  show: Boolean,
+  title: String,
+  size: {
+    type: String,
+    default: "md",
+  },
+});
+defineEmits(["close"]);
+
+const sizeClass = computed(() => {
+  return {
+    "modal-sm": props.size === "sm",
+    "modal-lg": props.size === "lg",
+    "modal-xl": props.size === "xl",
+  };
+});
 </script>
 
 <style scoped>
@@ -53,8 +70,18 @@ const emit = defineEmits(['close'])
 }
 .custom-modal-dialog {
   width: 100%;
-  max-width: 500px; /* កែសម្រួលទំហំ Modal ឱ្យតូចជាងមុន */
+  max-width: 500px;
   padding: 1rem;
+  transition: max-width 0.3s ease;
+}
+.custom-modal-dialog.modal-sm {
+  max-width: 350px;
+}
+.custom-modal-dialog.modal-lg {
+  max-width: 800px;
+}
+.custom-modal-dialog.modal-xl {
+  max-width: 1140px;
 }
 .custom-modal-content {
   background: white;

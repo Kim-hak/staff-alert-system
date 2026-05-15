@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useReportStore } from '@/stores/useReportStore';
+import { useReportStore } from '@/stores/useReportManagerStore';
 import BasePagination from '@/components/ui/base/BasePagination.vue';
 import Swal from 'sweetalert2';
 
