@@ -513,7 +513,7 @@
 
 <script setup>
 import { ref, onMounted, reactive } from "vue";
-import { useReportStore } from "@/stores/useReportStore";
+import { useReportStore } from "@/stores/useReportManagerStore";
 import { useUserStore } from "@/stores/userStore";
 import BaseModal from "@/components/ui/base/BaseModal.vue";
 import { useToast } from "vue-toastification";
@@ -754,6 +754,8 @@ const fetchReports = async () => {
     _per_page: 10,
     sortBy: "status",
     sortDir: "DESC",
+    periodStart: "",
+    periodEnd: "",
   };
   await reportStore.fetchMyReports(params);
 };
