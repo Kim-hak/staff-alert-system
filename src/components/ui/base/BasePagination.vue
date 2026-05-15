@@ -1,49 +1,47 @@
 <template>
   <nav aria-label="Page navigation" v-if="totalPages > 1">
     <ul class="pagination mb-0 gap-2 justify-content-end align-items-center">
-      
+
       <li class="page-item" :class="{ disabled: currentPage === 1 }">
-        <button class="page-link custom-page-link rounded-3 d-flex align-items-center justify-content-center" 
+        <button class="page-link custom-page-link rounded-3 d-flex align-items-center justify-content-center"
                 :disabled="currentPage === 1"
                 @click="goToPage(currentPage - 1)">
           <i class="bi bi-chevron-left"></i>
         </button>
       </li>
-      
+
       <li v-for="page in totalPages" :key="page" class="page-item">
-        <button class="page-link custom-page-link rounded-3 fw-medium" 
-                :class="{ active: currentPage === page }" 
+        <button class="page-link custom-page-link rounded-3 fw-medium"
+                :class="{ active: currentPage === page }"
                 @click="goToPage(page)">
           {{ page }}
         </button>
       </li>
-      
+
       <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-        <button class="page-link custom-page-link rounded-3 d-flex align-items-center justify-content-center" 
+        <button class="page-link custom-page-link rounded-3 d-flex align-items-center justify-content-center"
                 :disabled="currentPage === totalPages"
                 @click="goToPage(currentPage + 1)">
           <i class="bi bi-chevron-right"></i>
         </button>
       </li>
-      
+
     </ul>
   </nav>
 </template>
 
 <script setup>
 const props = defineProps({
-  currentPage: { type: Number, required: true },
-  totalPages: { type: Number, required: true }
-});
+  currentPage: Number,
+  totalPages: Number
+})
 
-const emit = defineEmits(['change', 'change-page']);
+const emit = defineEmits(['change-page'])
 
 const goToPage = (page) => {
-  if (page < 1 || page > props.totalPages || page === props.currentPage) return;
-
-  emit('change-page', page);
-  emit('change', page);
-};
+  if (page < 1 || page > props.totalPages) return
+  emit('change-page', page)
+}
 </script>
 
 <style scoped>
