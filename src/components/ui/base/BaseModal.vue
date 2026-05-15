@@ -19,7 +19,9 @@
             </div>
 
             <div class="p-4">
-              <slot />
+              <slot name="body">
+                <slot />
+              </slot>
             </div>
 
             <div v-if="$slots.footer" class="custom-modal-footer">

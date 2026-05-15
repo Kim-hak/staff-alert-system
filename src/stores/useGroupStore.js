@@ -1,5 +1,5 @@
-import { defineStore } from "pinia";
-import api from "@/api/api";
+import { defineStore } from 'pinia'
+import api from '@/api/api'
 
 const normalizeGroups = (payload) => {
   if (Array.isArray(payload?.data?.items)) {
@@ -266,10 +266,10 @@ export const useGroupStore = defineStore("group", {
         this.groups = this.groups.filter((group) => group.id !== id);
         return true;
       } catch (error) {
-        this.error = getErrorMessage(error, "Failed to delete group");
-        console.error("Delete group error:", error);
-        return false;
+        this.error = error.response?.data?.message || 'Failed to delete group'
+        console.error('Delete group error:', error)
+        return false
       }
-    },
-  },
-});
+    }
+  }
+})
