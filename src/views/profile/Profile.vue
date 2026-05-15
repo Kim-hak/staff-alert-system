@@ -128,10 +128,12 @@
       <button type="button" class="btn btn-danger khmer-font" @click="handleDeleteAvatar">លុបចេញ</button>
     </template>
   </BaseModal>
-  <!-- <BaseModal :show="isShow" @close="isShow = false" title="កែប្រែព័ត៌មាន">
+
+  
+  <BaseModal :show="isShow" @close="isShow = false" title="កែប្រែព័ត៌មាន">
     <template #body>
       <slot>
-
+        
       </slot>
     </template>
     <template #footer>
@@ -139,7 +141,7 @@
 
     </template>
       <p class="khmer-font">តើអ្នកប្រាកដជាចង់លុបគណនីនេះមែនទេ?</p>
-  </BaseModal> -->
+  </BaseModal>
 </div>
 
 </template>
