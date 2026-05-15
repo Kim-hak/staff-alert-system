@@ -8,8 +8,8 @@
 
         <tr>
 
-          <th v-for="col in columns" :key="col.key" class="text-uppercase fw-bold text-success text-muted py-3 px-4"
-            style="font-size: 14px; letter-spacing: 0.5px;">
+          <th v-for="col in columns" :key="col.key" class="text-uppercase fw-bold  text-muted py-3 px-4"
+            style="font-size: 14px; letter-spacing: 0.5px; color:#406159;">
 
             {{ col.label }}
 
@@ -95,7 +95,7 @@ defineProps({
 <style scoped>
 .custom-table th {
 
-  background-color: #d9e5ea;
+  background-color: #bcd3cb;
 
   border-bottom: 2px solid #eef2f5;
 

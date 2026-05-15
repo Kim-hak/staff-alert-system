@@ -39,6 +39,9 @@
             <button class="btn btn-action-outline py-2 fw-bold">
               <i class="bi bi-shield-lock me-2"></i> ប្តូរពាក្យសម្ងាត់
             </button>
+           
+          
+
             <button class="btn btn-action-success py-2 fw-bold">
               <i class="bi bi-envelope me-2"></i> ប្តូរអ៊ីមែល
             </button>
@@ -71,35 +74,35 @@
             <div class="col-md-6">
               <div class="info-group">
                 <label class="info-label khmer-font"><i class="bi bi-telephone me-2"></i> លេខទូរស័ព្ទ</label>
-                <div class="info-value">{{ authStore.profile?.phone || 'មិនមាន' }}</div>
+                <div class="info-value">{{ authStore.profile?.phone || 'Null' }}</div>
               </div>
             </div>
 
             <div class="col-md-6">
               <div class="info-group">
                 <label class="info-label khmer-font"><i class="bi bi-gender-ambiguous me-2"></i> ភេទ</label>
-                <div class="info-value">{{ authStore.profile?.gender || 'មិនមាន' }}</div>
+                <div class="info-value">{{ authStore.profile?.gender || 'Null' }}</div>
               </div>
             </div>
 
             <div class="col-md-6">
               <div class="info-group">
                 <label class="info-label khmer-font"><i class="bi bi-calendar-event me-2"></i> ថ្ងៃខែឆ្នាំកំណើត</label>
-                <div class="info-value">{{ authStore.profile?.birthday || 'មិនមាន' }}</div>
+                <div class="info-value">{{ authStore.profile?.birthday || 'Null' }}</div>
               </div>
             </div>
 
             <div class="col-md-6">
               <div class="info-group">
                 <label class="info-label khmer-font"><i class="bi bi-calendar-check me-2"></i> ថ្ងៃចូលធ្វើការ</label>
-                <div class="info-value">{{ authStore.profile?.hireDate || 'មិនមាន' }}</div>
+                <div class="info-value">{{ authStore.profile?.hireDate || 'Null' }}</div>
               </div>
             </div>
 
             <div class="col-md-6">
               <div class="info-group">
                 <label class="info-label khmer-font"><i class="bi bi-currency-dollar me-2"></i> ប្រាក់បៀវត្សរ៍បច្ចុប្បន្ន</label>
-                <div class="info-value">{{ authStore.profile?.salary || 'មិនមាន' }}</div>
+                <div class="info-value">{{ authStore.profile?.salary || 'Null' }}</div>
               </div>
             </div>
 
@@ -107,7 +110,7 @@
               <div class="info-group">
                 <label class="info-label khmer-font"><i class="bi bi-shield-check me-2"></i> ស្ថានភាពគណនី</label>
                 <div>
-                  <span class="status-active">{{ authStore.profile?.status || 'មិនមាន' }}</span>
+                  <span class="status-active">{{ authStore.profile?.status || 'Null' }}</span>
                 </div>
               </div>
             </div>
@@ -115,17 +118,30 @@
         </div>
       </div>
     </div>
+    
+    <BaseModal :show="isShow" @close="isShow = false" title="លុបរូបភាព">
+    <template #body>
+      <p class="khmer-font">តើអ្នកប្រាកដជាចង់លុបរូបភាពនេះមែនទេ?</p>
+    </template>
+    <template #footer>
+      <button type="button" class="btn btn-secondary khmer-font" @click="isShow = false">បោះបង់</button>
+      <button type="button" class="btn btn-danger khmer-font" @click="handleDeleteAvatar">លុបចេញ</button>
+    </template>
+  </BaseModal>
+  <!-- <BaseModal :show="isShow" @close="isShow = false" title="កែប្រែព័ត៌មាន">
+    <template #body>
+      <slot>
 
-    <BaseModal v-if="isShow" @close-modal="isShow = false" title="លុបរូបភាព">
-      <template #body>
-        <p class="khmer-font">តើអ្នកប្រាកដជាចង់លុបរូបភាពនេះមែនទេ?</p>
-      </template>
-      <template #footer>
-        <button type="button" class="btn btn-danger khmer-font" @click="handleDeleteAvatar">លុប</button>
-        <button type="button" class="btn btn-secondary khmer-font" @click="isShow = false">បិទ</button>
-      </template>
-    </BaseModal>
-  </div>
+      </slot>
+    </template>
+    <template #footer>
+     
+
+    </template>
+      <p class="khmer-font">តើអ្នកប្រាកដជាចង់លុបគណនីនេះមែនទេ?</p>
+  </BaseModal> -->
+</div>
+
 </template>
 
 <script setup>
@@ -133,10 +149,13 @@ import { useAuthStore } from '@/stores/useAuth';
 import { computed, onMounted, reactive, ref } from 'vue';
 import api from '@/api/api';
 import BaseModal from '@/components/ui/base/BaseModal.vue';
+import BaseButton from '@/components/ui/base/BaseButton.vue';
+
 
 const authStore = useAuthStore();
+let loading = ref(false)
 const isShow = ref(false);
-const isEditprofile = ref(false);
+
 
 onMounted(async () => {
   await authStore.fetchProfile(); // Load profile data on mount
@@ -154,6 +173,7 @@ const formData = reactive({
   salary: '',
   status: '',
 });
+
 
 const syncFormData = () => {
   formData.fullname = authStore.profile?.fullname || '';
@@ -176,11 +196,10 @@ const userRole = computed(() => {
   }
 });
 
-const startEdit = () => { isEditprofile.value = true; };
 
 async function handleDeleteAvatar() {
   try {
-    await api.delete('profile/avatar');
+    await api.delete('/auth/profile/avatar');
     await authStore.fetchProfile();
   } catch (error) {
     console.error(error);
@@ -192,13 +211,32 @@ async function handleDeleteAvatar() {
 async function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
+
   const data = new FormData();
-  data.append('avatar', file);
+  
+  /** * IMPORTANT: If 'avatar' doesn't work, try changing it to 'file'.
+   * Your Postman error "File is required" usually means the 
+   * backend didn't find the key it was looking for.
+   */
+  data.append('avatar', file); 
+
   try {
-    await api.post('profile/avatar', data);
+    loading.value = true;
+    
+    // Ensure the path matches your Postman: /auth/profile/avatar
+    await api.post('/auth/profile/avatar', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
     await authStore.fetchProfile();
+    alert("ជោគជ័យ!");
   } catch (error) {
-    console.error(error);
+    console.error("Upload Error Details:", error.response?.data);
+    alert("បរាជ័យ: " + (error.response?.data?.message || "Error"));
+  } finally {
+    loading.value = false;
   }
 }
 </script>
