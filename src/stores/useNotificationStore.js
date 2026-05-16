@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
-import { useAuthStore } from './useAuth'; // ទាញយកតួនាទីអ្នកប្រើពី store ផ្ទៀងផ្ទាត់
+import api from '@/api/api';
 
 export const useNotificationStore = defineStore('notification', {
   state: () => ({
@@ -12,19 +11,9 @@ export const useNotificationStore = defineStore('notification', {
   actions: {
     async fetchNotifications() {
       this.isLoading = true;
-      const authStore = useAuthStore();
-      const role = authStore.profile?.role?.name?.toUpperCase(); // ឆែកមើលថាជា ADMIN ឬ MANAGER
 
       try {
-        // ប្តូរ Endpoint ទៅតាមតួនាទីរបស់អ្នកប្រើ
-        let endpoint = '/notifications';
-        if (role === 'ADMIN') {
-          endpoint = '/admin/notifications';
-        } else if (role === 'MANAGER') {
-          endpoint = '/manager/notifications';
-        }
-
-        const response = await axios.get(endpoint);
+        const response = await api.get('/notifications');
         this.notifications = response.data?.data?.items || [];
         this.unreadCount = this.notifications.filter(n => !n.isRead).length;
       } catch (error) {
@@ -37,11 +26,37 @@ export const useNotificationStore = defineStore('notification', {
     // មុខងារលុបដែលប្រើបានទាំងពីរ Role
     async deleteNotification(id) {
       try {
-        await axios.delete(`/notifications/${id}`);
+        await api.delete(`/notifications/${id}`);
         this.notifications = this.notifications.filter(n => n.id !== id);
+        this.unreadCount = this.notifications.filter(n => !n.isRead).length;
       } catch (error) {
         console.error("Delete Error:", error);
       }
-    }
+    },
+
+    async markAsRead(id) {
+      try {
+        await api.put(`/notifications/${id}/read`);
+        const notification = this.notifications.find(n => n.id === id);
+        if (notification) notification.isRead = true;
+        this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+        return true;
+      } catch (error) {
+        console.error("Mark Read Error:", error);
+        return false;
+      }
+    },
+
+    async markAllAsRead() {
+      try {
+        await api.put('/notifications/read-all');
+        this.notifications = this.notifications.map(n => ({ ...n, isRead: true }));
+        this.unreadCount = 0;
+        return true;
+      } catch (error) {
+        console.error("Mark All Read Error:", error);
+        return false;
+      }
+    },
   }
 });

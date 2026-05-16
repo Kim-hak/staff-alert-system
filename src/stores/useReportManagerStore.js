@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import api from "@/api/api";
 import { useAuthStore } from "./useAuth";
+import { getRoleKey } from "@/utils/roles";
 
 export const useReportStore = defineStore("report", {
   state: () => ({
@@ -10,16 +11,32 @@ export const useReportStore = defineStore("report", {
     meta: {},
   }),
 
+  getters: {
+    reportStats: (state) => {
+      const reports = Array.isArray(state.reports) ? state.reports : [];
+      const reviewed = reports.filter((report) => report.status === "REVIEWED").length;
+
+      return {
+        total: reports.length,
+        reviewed,
+        pending: reports.length - reviewed,
+      };
+    },
+  },
+
   actions: {
+    setReportList(response) {
+      const data = response?.data?.data;
+      this.reports = data?.items || [];
+      this.meta = data?.meta || {};
+    },
+
     async fetchMyReports(params = {}) {
       this.isLoading = true;
       this.error = null;
       try {
         const response = await api.get("/performance-reports/my", { params });
-        if (response.data && response.data.data) {
-          this.reports = response.data.data.items || [];
-          this.meta = response.data.data.meta || {};
-        }
+        this.setReportList(response);
       } catch (err) {
         this.error = "មិនអាចទាញទិន្នន័យរបាយការណ៍បានទេ";
         console.error("Fetch My Reports Error:", err);
@@ -28,38 +45,40 @@ export const useReportStore = defineStore("report", {
       }
     },
 
-    async fetchReports(page = 1) {
+    async fetchReports(params = {}) {
       this.isLoading = true;
       this.error = null;
 
       const authStore = useAuthStore();
-      const role = authStore.profile?.role?.name?.toUpperCase();
+      const roleKey = getRoleKey(authStore.profile);
+      const query = typeof params === "number" ? { _page: params } : { ...params };
 
       try {
         let endpoint = "/performance-reports";
-        let params = {
-          _page: page,
-          _per_page: 10,
+        const requestParams = {
+          _page: query._page || 1,
+          _per_page: query._per_page || 10,
           sortBy: "status",
           sortDir: "DESC",
+          ...query,
         };
 
-        if (role === "MANAGER") {
-          params.managerId = authStore.profile?.id;
+        if (roleKey === "manager" && !requestParams.managerId) {
+          requestParams.managerId = authStore.profile?.id;
         }
 
-        const response = await api.get(endpoint, { params });
-
-        if (response.data && response.data.data) {
-          this.reports = response.data.data.items || [];
-          this.meta = response.data.data.meta || {};
-        }
+        const response = await api.get(endpoint, { params: requestParams });
+        this.setReportList(response);
       } catch (err) {
         this.error = "មិនអាចទាញទិន្នន័យរបាយការណ៍បានទេ";
         console.error("Fetch Error:", err);
       } finally {
         this.isLoading = false;
       }
+    },
+
+    async fetchAllReports(params = {}) {
+      return this.fetchReports(params);
     },
 
     async fetchReportById(id) {
