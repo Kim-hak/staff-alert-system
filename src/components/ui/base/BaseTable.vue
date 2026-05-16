@@ -46,7 +46,8 @@
           </td>
         </tr>
 
-        <tr v-else v-for="(item, index) in data" :key="item.id || index" class="custom-row">
+        <tr v-else v-for="(item, index) in data" :key="item.id || index" class="custom-row"
+          @click="$emit('row-click', item)" style="cursor:pointer">
 
           <td v-for="col in columns" :key="col.key" class="py-3 px-4">
 
@@ -87,6 +88,7 @@ defineProps({
   loading: Boolean
 
 });
+defineEmits(["row-click"]);
 
 </script>
 

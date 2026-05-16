@@ -32,7 +32,7 @@
         >
           <button
             class="btn btn-white-glass rounded-circle p-2 shadow-sm action-btn"
-            @click.stop="$refs.fileInput.click()"
+            @click.stop="fileInput.click()"
             title="Change thumbnail"
           >
             <i class="bi bi-camera-fill"></i>
@@ -102,34 +102,18 @@
 
         <button
           class="btn btn-light-custom btn-sm rounded-pill px-3 fw-medium transition-all"
+          @click="$emit('members')"
         >
           View members <i class="bi bi-arrow-right ms-1"></i>
         </button>
-      </div>
-
-      <div class="flex-grow-1 text-start">
-        <h5 class="fw-bold text-dark mb-1">{{ name }}</h5>
-        <p v-if="description" class="group-description text-muted small mb-2">{{ description }}</p>
-        <p class="text-muted small mb-1">Manager: <span class="text-secondary">{{ managerName }}</span></p>
-        <p class="text-muted small mb-0"><i class="bi bi-people me-1"></i> {{ membersCount }} members</p>
-        <p class="text-muted small mt-2" style="font-size: 0.8rem;">Created: {{ createdAt }}</p>
-      </div>
-
-      <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-light">
-        <button class="btn btn-light text-secondary flex-grow-1 me-2 fw-medium btn-members" @click="$emit('members')">
-          <i class="bi bi-people me-1"></i> Members
-        </button>
-        <div class="d-flex gap-1">
-          <button class="btn btn-light text-success btn-action" @click="$emit('edit')"><i class="bi bi-pencil-square"></i></button>
-          <button class="btn btn-light text-danger btn-action" @click="$emit('delete')"><i class="bi bi-trash"></i></button>
-        </div>
       </div>
     </div>
   </BaseCard>
 </template>
 
 <script setup>
-import BaseCard from './BaseCard.vue';
+import { ref } from "vue";
+import BaseCard from "./BaseCard.vue";
 
 defineProps({
   thumbnail: String,
@@ -137,43 +121,124 @@ defineProps({
   description: String,
   managerName: String,
   membersCount: { type: Number, default: 0 },
-  createdAt: String
+  createdAt: String,
 });
-defineEmits(['edit', 'delete', 'members']);
+const emit = defineEmits([
+  "edit",
+  "delete-thumbnail",
+  "members",
+  "update-thumbnail",
+]);
+
+const fileInput = ref(null);
+
+const onFileSelected = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    emit("update-thumbnail", file);
+    // Reset the input value so the same file can be selected again if needed
+    event.target.value = "";
+  }
+};
 </script>
 
 <style scoped>
-.group-thumbnail {
-  width: 100%;
-  height: 160px;
-  overflow: hidden;
-}
-.upload-btn {
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.group-thumbnail:hover .upload-btn {
-  opacity: 1;
-}
-.btn-members {
+.group-image-container {
+  height: 200px;
   background-color: #f8f9fa;
-  border: none;
-  transition: all 0.2s;
 }
-.btn-members:hover {
-  background-color: #e2e6ea;
-  color: #4D7C6E !important;
+
+.group-img {
+  object-position: center;
 }
-.btn-action {
-  border: none;
-  background: transparent;
+
+.image-placeholder {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
-.btn-action:hover {
-  background-color: #f1f3f5;
+
+.btn-white-glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #52796f;
 }
-.group-description {
+
+.btn-white-glass:hover {
+  background: white;
+  color: #354f52;
+  transform: scale(1.1);
+}
+
+.btn-danger-glass {
+  background: rgba(220, 53, 69, 0.1);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.btn-danger-glass:hover {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.1);
+}
+
+.action-btn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.member-badge {
+  z-index: 2;
+  font-size: 0.75rem;
+}
+
+.extra-small {
+  font-size: 0.7rem;
+}
+
+.line-clamp-1 {
   display: -webkit-box;
-  overflow: hidden;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.btn-light-custom {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  color: #6c757d;
+  transition: all 0.2s ease;
+}
+
+.btn-light-custom:hover {
+  background-color: #e9ecef;
+  color: #52796f;
+  border-color: #52796f;
+}
+
+.manager-avatar-mini {
+  width: 32px;
+  height: 32px;
+  font-size: 0.85rem;
+}
+
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.group-card-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
 }
 </style>

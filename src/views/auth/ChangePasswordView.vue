@@ -92,7 +92,7 @@
   </div>
 </template>
 
-<script setup>
+<!-- <script setup>
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/useAuth";
@@ -147,4 +147,4 @@ const handleChangePassword = async () => {
     loading.value = false;
   }
 };
-</script>
+</script> -->

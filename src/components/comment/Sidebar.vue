@@ -70,7 +70,7 @@
           <i class="bi bi-person-circle"></i><span>ប្រវត្តិរូប</span>
         </RouterLink>
          <RouterLink :to="{ name: 'staffTelegram' }" class="nav-item-custom">
-          <i class="bi bi-bell-fill"></i><span>តេលេក្រាម</span>
+          <i class="bi bi-telegram"></i><span>តេលេក្រាម</span>
         </RouterLink>
       </template>
 
