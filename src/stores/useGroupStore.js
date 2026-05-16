@@ -1,38 +1,49 @@
 import { defineStore } from 'pinia'
 import api from '@/api/api'
 
-const normalizeGroups = (payload) => {
-  if (Array.isArray(payload?.data?.items)) {
-    return payload.data.items;
+const normalizeGroupItem = (item) => {
+  if (item && typeof item === "object") {
+    return {
+      ...item,
+      members: item.members || item.staffs || item.users || [],
+    };
   }
 
-  if (Array.isArray(payload?.data)) {
-    return payload.data;
-  }
-
-  if (Array.isArray(payload?.items)) {
-    return payload.items;
-  }
-
-  return [];
+  return item;
 };
 
-const normalizeList = normalizeGroups;
+const normalizeList = (payload) => {
+  let items = [];
+
+  if (Array.isArray(payload?.data?.items)) {
+    items = payload.data.items;
+  } else if (Array.isArray(payload?.data)) {
+    items = payload.data;
+  } else if (Array.isArray(payload?.items)) {
+    items = payload.items;
+  } else if (Array.isArray(payload)) {
+    items = payload;
+  }
+
+  return items;
+};
+
+const normalizeGroups = (payload) => normalizeList(payload).map(normalizeGroupItem);
 
 const normalizeCreatedGroup = (payload) => {
+  let item = null;
+
   if (payload?.data?.item) {
-    return payload.data.item;
+    item = payload.data.item;
+  } else if (payload?.data && !Array.isArray(payload.data)) {
+    item = payload.data;
+  } else if (payload?.item) {
+    item = payload.item;
+  } else {
+    item = payload;
   }
 
-  if (payload?.data && !Array.isArray(payload.data)) {
-    return payload.data;
-  }
-
-  if (payload?.item) {
-    return payload.item;
-  }
-
-  return payload;
+  return normalizeGroupItem(item);
 };
 
 const getErrorMessage = (error, fallback) => {
@@ -144,6 +155,27 @@ export const useGroupStore = defineStore("group", {
         console.error("Fetch staff error:", error);
       } finally {
         this.staffsLoading = false;
+      }
+    },
+
+    async fetchGroupById(id) {
+      this.error = null;
+
+      try {
+        const response = await api.get(`/groups/${id}`);
+        const group = normalizeCreatedGroup(response.data);
+
+        if (group?.id) {
+          this.groups = this.groups.map((item) =>
+            String(item.id) === String(id) ? group : item,
+          );
+        }
+
+        return group;
+      } catch (error) {
+        this.error = getErrorMessage(error, "Failed to load group details");
+        console.error("Fetch group by id error:", error);
+        return null;
       }
     },
 

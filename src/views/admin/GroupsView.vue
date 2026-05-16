@@ -14,6 +14,7 @@ const editingGroup = ref(null);
 const selectedGroupForMembers = ref(null);
 const isSubmitting = ref(false);
 const isAddingMembers = ref(false);
+const isLoadingMembers = ref(false);
 const itemsPerPage = 6;
 
 const groupForm = reactive({
@@ -77,7 +78,24 @@ const handlePageChange = (page) => {
 };
 
 function getUserName(user) {
-  return user.fullname || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Unnamed manager';
+  return user.fullname
+    || user.name
+    || user.username
+    || `${user.firstName || ''} ${user.lastName || ''}`.trim()
+    || user.email
+    || 'Unnamed user';
+}
+
+function getMemberUser(member) {
+  return member?.user || member?.staff || member;
+}
+
+function getMemberUserId(member) {
+  return member?.user?.id
+    ?? member?.staff?.id
+    ?? member?.userId
+    ?? member?.staffId
+    ?? member?.id;
 }
 
 function getGroupName(group) {
@@ -109,6 +127,7 @@ function getMembersCount(group) {
 }
 
 function getGroupMembers(group) {
+  if (!group) return [];
   if (Array.isArray(group.members)) return group.members;
   if (Array.isArray(group.staffs)) return group.staffs;
   if (Array.isArray(group.users)) return group.users;
@@ -116,13 +135,73 @@ function getGroupMembers(group) {
 }
 
 function getGroupMemberIds(group) {
-  return getGroupMembers(group).map((member) => String(member.id ?? member.userId ?? member.staffId));
+  return [...new Set(
+    getGroupMembers(group)
+      .map(getMemberUserId)
+      .filter((id) => id !== undefined && id !== null)
+      .map(String)
+  )];
 }
 
-const availableStaffs = computed(() => {
-  const existingIds = selectedGroupForMembers.value ? getGroupMemberIds(selectedGroupForMembers.value) : [];
-  return groupStore.staffs.filter((staff) => !existingIds.includes(String(staff.id)));
+const selectedGroupMemberIds = computed(() => (
+  selectedGroupForMembers.value ? getGroupMemberIds(selectedGroupForMembers.value) : []
+));
+
+const selectedGroupMemberIdSet = computed(() => new Set(selectedGroupMemberIds.value));
+
+const staffMemberOptions = computed(() => {
+  const currentMemberIds = selectedGroupMemberIdSet.value;
+  const optionsById = new Map();
+
+  const addOption = (userLike) => {
+    const user = getMemberUser(userLike);
+    const id = getMemberUserId(userLike);
+
+    if (!user || id === undefined || id === null) return;
+
+    optionsById.set(String(id), {
+      ...user,
+      id: String(id)
+    });
+  };
+
+  groupStore.staffs.forEach(addOption);
+  getGroupMembers(selectedGroupForMembers.value).forEach(addOption);
+
+  return Array.from(optionsById.values()).sort((a, b) => {
+    const aIsMember = currentMemberIds.has(String(a.id));
+    const bIsMember = currentMemberIds.has(String(b.id));
+
+    if (aIsMember !== bIsMember) {
+      return aIsMember ? -1 : 1;
+    }
+
+    return getUserName(a).localeCompare(getUserName(b));
+  });
 });
+
+const newSelectedMemberIds = computed(() => (
+  memberForm.selectedIds.filter((id) => !selectedGroupMemberIdSet.value.has(String(id)))
+));
+
+function setMemberSelectionFromGroup(group) {
+  memberForm.selectedIds = getGroupMemberIds(group);
+}
+
+function isCurrentGroupMember(staff) {
+  const id = getMemberUserId(staff);
+  return id !== undefined && id !== null && selectedGroupMemberIdSet.value.has(String(id));
+}
+
+function isSelectedMember(staff) {
+  const id = getMemberUserId(staff);
+  return id !== undefined && id !== null && memberForm.selectedIds.includes(String(id));
+}
+
+function toApiUserId(id) {
+  const numericId = Number(id);
+  return Number.isNaN(numericId) ? id : numericId;
+}
 
 const formatDate = (date) => {
   if (!date) return '-';
@@ -171,15 +250,33 @@ const closeGroupModal = () => {
   resetGroupForm();
 };
 
-const openMembersModal = (group) => {
+const openMembersModal = async (group) => {
   selectedGroupForMembers.value = group;
-  memberForm.selectedIds = [];
+  setMemberSelectionFromGroup(group);
   showMembersModal.value = true;
+
+  isLoadingMembers.value = true;
+  const staffPromise = groupStore.staffs.length > 0 ? Promise.resolve() : groupStore.fetchStaffs();
+
+  try {
+    const [details] = await Promise.all([
+      groupStore.fetchGroupById(group.id),
+      staffPromise
+    ]);
+
+    if (details) {
+      selectedGroupForMembers.value = details;
+      setMemberSelectionFromGroup(details);
+    }
+  } finally {
+    isLoadingMembers.value = false;
+  }
 };
 
 const closeMembersModal = () => {
   if (isAddingMembers.value) return;
   showMembersModal.value = false;
+  isLoadingMembers.value = false;
   selectedGroupForMembers.value = null;
   memberForm.selectedIds = [];
 };
@@ -286,10 +383,10 @@ const handleSubmitGroup = async () => {
 const handleAddMembers = async () => {
   if (!selectedGroupForMembers.value) return;
 
-  if (memberForm.selectedIds.length === 0) {
+  if (newSelectedMemberIds.value.length === 0) {
     Swal.fire({
-      title: 'No members selected',
-      text: 'Please select at least one staff member.',
+      title: 'No new members selected',
+      text: 'Please select staff who are not already in this group.',
       icon: 'warning',
       confirmButtonColor: '#2D6A4F'
     });
@@ -297,7 +394,7 @@ const handleAddMembers = async () => {
   }
 
   isAddingMembers.value = true;
-  const userIds = memberForm.selectedIds.map((id) => Number(id));
+  const userIds = newSelectedMemberIds.value.map(toApiUserId);
   const success = await groupStore.addGroupMembers(selectedGroupForMembers.value.id, userIds);
   isAddingMembers.value = false;
 
@@ -526,28 +623,41 @@ const handleDelete = async (id) => {
 
         <form class="modal-body-panel" @submit.prevent="handleAddMembers">
           <div class="mb-3">
-            <label class="form-label fw-semibold">Staff Members</label>
-            <div v-if="groupStore.staffsLoading" class="text-muted py-3">
+            <div class="members-label-row">
+              <label class="form-label fw-semibold mb-0">Staff Members</label>
+              <span class="member-count-badge">{{ selectedGroupMemberIds.length }} in group</span>
+            </div>
+
+            <div v-if="isLoadingMembers" class="members-refreshing">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Refreshing group members...
+            </div>
+
+            <div v-if="groupStore.staffsLoading && staffMemberOptions.length === 0" class="text-muted py-3">
               <span class="spinner-border spinner-border-sm me-2" role="status"></span>
               Loading staff...
             </div>
 
-            <div v-else-if="availableStaffs.length === 0" class="empty-members-state">
-              No available staff to add.
+            <div v-else-if="staffMemberOptions.length === 0" class="empty-members-state">
+              No staff members found.
             </div>
 
             <div v-else class="member-picker">
               <label
-                v-for="staff in availableStaffs"
+                v-for="staff in staffMemberOptions"
                 :key="staff.id"
                 class="member-option"
+                :class="{
+                  'member-option-selected': isSelectedMember(staff),
+                  'member-option-existing': isCurrentGroupMember(staff)
+                }"
               >
                 <input
                   v-model="memberForm.selectedIds"
                   class="form-check-input"
                   type="checkbox"
                   :value="String(staff.id)"
-                  :disabled="isAddingMembers"
+                  :disabled="isAddingMembers || isCurrentGroupMember(staff)"
                 >
                 <span class="member-avatar">
                   <img v-if="staff.avatar" :src="staff.avatar" alt="">
@@ -557,6 +667,7 @@ const handleDelete = async (id) => {
                   <span class="member-name">{{ getUserName(staff) }}</span>
                   <span class="member-email">{{ staff.email || staff.phone || 'Staff' }}</span>
                 </span>
+                <span v-if="isCurrentGroupMember(staff)" class="member-status-badge">In group</span>
               </label>
             </div>
           </div>
@@ -573,7 +684,7 @@ const handleDelete = async (id) => {
             <button
               type="submit"
               class="btn btn-create px-4"
-              :disabled="isAddingMembers || availableStaffs.length === 0"
+              :disabled="isAddingMembers || newSelectedMemberIds.length === 0"
             >
               <span v-if="isAddingMembers" class="spinner-border spinner-border-sm me-2" role="status"></span>
               Add Members
@@ -683,6 +794,38 @@ const handleDelete = async (id) => {
   font-size: 0.82rem;
 }
 
+.members-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.member-count-badge,
+.member-status-badge {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  color: #2d6a4f;
+  background: #e9f5ef;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.member-count-badge {
+  padding: 7px 10px;
+}
+
+.members-refreshing {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #6b7280;
+  font-size: 0.86rem;
+}
+
 .member-picker {
   display: grid;
   gap: 10px;
@@ -701,8 +844,39 @@ const handleDelete = async (id) => {
   cursor: pointer;
 }
 
+.member-option .form-check-input {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  margin: 0;
+}
+
+.member-option .form-check-input:checked {
+  border-color: #0d6efd;
+  background-color: #0d6efd;
+}
+
+.member-option .form-check-input:disabled {
+  opacity: 1;
+  pointer-events: none;
+}
+
 .member-option:hover {
   background: #f4faf9;
+}
+
+.member-option-selected {
+  border-color: #3b82f6;
+  background: #f8fbff;
+}
+
+.member-option-existing {
+  cursor: default;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.14);
+}
+
+.member-option-existing:hover {
+  background: #f8fbff;
 }
 
 .member-avatar {
@@ -740,6 +914,11 @@ const handleDelete = async (id) => {
   font-size: 0.84rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.member-status-badge {
+  margin-left: auto;
+  padding: 6px 9px;
 }
 
 .empty-members-state {
