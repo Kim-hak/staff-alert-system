@@ -76,48 +76,48 @@ const handlePageChange = (page) => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-const getUserName = (user) => {
+function getUserName(user) {
   return user.fullname || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Unnamed manager';
-};
+}
 
-const getGroupName = (group) => {
+function getGroupName(group) {
   return String(group.name || group.groupName || group.group_name || '');
-};
+}
 
-const getGroupImage = (group) => {
+function getGroupImage(group) {
   return group.thumbnail || group.avatar || group.image || group.photo || '';
-};
+}
 
-const getManagerId = (group) => {
+function getManagerId(group) {
   return group.managerId || group.manager?.id || group.manager_id || '';
-};
+}
 
-const getManagerName = (group) => {
+function getManagerName(group) {
   return group.managerName
     || group.manager?.fullname
     || group.manager?.name
     || group.manager?.email
     || 'Unassigned';
-};
+}
 
-const getMembersCount = (group) => {
+function getMembersCount(group) {
   if (typeof group.membersCount === 'number') return group.membersCount;
   if (typeof group.memberCount === 'number') return group.memberCount;
   if (Array.isArray(group.members)) return group.members.length;
   if (Array.isArray(group.staffs)) return group.staffs.length;
   return 0;
-};
+}
 
-const getGroupMembers = (group) => {
+function getGroupMembers(group) {
   if (Array.isArray(group.members)) return group.members;
   if (Array.isArray(group.staffs)) return group.staffs;
   if (Array.isArray(group.users)) return group.users;
   return [];
-};
+}
 
-const getGroupMemberIds = (group) => {
+function getGroupMemberIds(group) {
   return getGroupMembers(group).map((member) => String(member.id ?? member.userId ?? member.staffId));
-};
+}
 
 const availableStaffs = computed(() => {
   const existingIds = selectedGroupForMembers.value ? getGroupMemberIds(selectedGroupForMembers.value) : [];

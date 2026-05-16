@@ -48,6 +48,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
+import { getRoleKey } from '@/utils/roles'
 import Swal from 'sweetalert2'
 defineEmits(['toggle'])
 
@@ -65,19 +66,20 @@ const displayName = computed(() => {
 const initial = computed(() => displayName.value.charAt(0).toUpperCase())
 
 const roleLabel = computed(() => {
-  switch (authStore.profile?.role?.id) {
-    case 1: return 'ADMIN'
-    case 2: return 'MANAGER'
-    case 3: return 'STAFF'
+  switch (getRoleKey(authStore.profile)) {
+    case 'admin': return 'ADMIN'
+    case 'manager': return 'MANAGER'
+    case 'staff': return 'STAFF'
     default: return 'USER'
   }
 })
 
 const profileRoute = computed(() => {
-  switch (authStore.profile?.role?.id) {
-    case 1: return '/admin/profile'
-    case 2: return '/manager/profile'
-    default: return '/admin/profile'
+  switch (getRoleKey(authStore.profile)) {
+    case 'admin': return '/admin/profile'
+    case 'manager': return '/manager/profile'
+    case 'staff': return '/staff/profile'
+    default: return '/'
   }
 })
 

@@ -86,6 +86,7 @@ import { useAuthStore } from '@/stores/useAuth';
 import { useRouter } from 'vue-router';
 import { validator } from '@/composables/useValitor';
 import { useToast } from "vue-toastification";
+import { getRoleKey } from '@/utils/roles';
 
 const { validatField, error } = validator();
 const router = useRouter();
@@ -136,14 +137,25 @@ async function handleLogin() {
       toast.success("បានចូលគណនីដោយជោគជ័យ", {
         timeout: 2000,
         position: "top-right",
-        // ADD THIS LINE TO APPLY YOUR COLOR AND SIZE:
         toastClassName: "custom-toast-success" 
       });
 
-      // Redirect logic
-      const roleId = authStore.profile.role.id;
-      if (roleId === 1 || roleId === 2) router.replace({ name: 'managerDashboard' });
-      else router.replace({ name: 'staffDashboard' });
+      // Redirect logic based on Role ID
+      const roleKey = getRoleKey(authStore.profile);
+
+      if (roleKey === 'admin') {
+        // Role 1: Admin
+        router.replace({ name: 'adminDashboard' }); 
+      } else if (roleKey === 'manager') {
+        // Role 2: Manager
+        router.replace({ name: 'managerDashboard' });
+      } else if (roleKey === 'staff') {
+        // Role 3: Staff
+        router.replace({ name: 'staffDashboard' });
+      } else {
+        // Fallback for any unknown role
+        router.replace({ name: 'notFound' }); 
+      }
     }
   } catch (error) {
     toast.error(authStore.message_error || "Login failed!");
