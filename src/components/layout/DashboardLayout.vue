@@ -20,13 +20,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import Sidebar from '@/components/comment/Sidebar.vue'
 import Navbar from '@/components/comment/Navbar.vue'
 
 
 const sidebarOpen = ref(true)
 const isMobile = ref(false)
+const route = useRoute()
 
 const checkScreen = () => {
   isMobile.value = window.innerWidth < 992
@@ -36,6 +38,15 @@ const checkScreen = () => {
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value
 }
+
+watch(
+  () => route.fullPath,
+  () => {
+    if (isMobile.value) {
+      sidebarOpen.value = false
+    }
+  },
+)
 
 onMounted(() => {
   checkScreen()

@@ -1,6 +1,6 @@
 import api from "@/api/api";
 import { defineStore } from "pinia";
-import { reactive, ref } from "vue";
+import { reactive, ref, watch } from "vue";
 
 export const useArcticleStore = defineStore("arcticle", () => {
     const allArcticles = ref([]);

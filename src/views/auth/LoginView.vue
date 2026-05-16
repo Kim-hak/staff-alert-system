@@ -86,6 +86,7 @@ import { useAuthStore } from '@/stores/useAuth';
 import { useRouter } from 'vue-router';
 import { validator } from '@/composables/useValitor';
 import { useToast } from "vue-toastification";
+import { getRoleKey } from '@/utils/roles';
 
 const { validatField, error } = validator();
 const router = useRouter();
@@ -140,20 +141,20 @@ async function handleLogin() {
       });
 
       // Redirect logic based on Role ID
-      const roleId = authStore.profile.role?.id;
+      const roleKey = getRoleKey(authStore.profile);
 
-      if (roleId === 1) {
+      if (roleKey === 'admin') {
         // Role 1: Admin
         router.replace({ name: 'adminDashboard' }); 
-      } else if (roleId === 2) {
+      } else if (roleKey === 'manager') {
         // Role 2: Manager
         router.replace({ name: 'managerDashboard' });
-      } else if (roleId === 3) {
+      } else if (roleKey === 'staff') {
         // Role 3: Staff
         router.replace({ name: 'staffDashboard' });
       } else {
         // Fallback for any unknown role
-        router.replace({ name: 'home' }); 
+        router.replace({ name: 'notFound' }); 
       }
     }
   } catch (error) {

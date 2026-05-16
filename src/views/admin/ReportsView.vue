@@ -1,22 +1,41 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useReportStore } from '@/stores/useReportManagerStore';
+import { ref, onMounted, computed, reactive } from 'vue';
+import { useReportStore } from '@/stores/useReportStore';
 import BasePagination from '@/components/ui/base/BasePagination.vue';
+import BaseModal from '@/components/ui/base/BaseModal.vue';
 import Swal from 'sweetalert2';
 
 const reportStore = useReportStore();
 const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 6;
-const authStore = useAuthStore();
+const showEditReportModal = ref(false);
+const isSubmitting = ref(false);
 
-onMounted(() => {
-  reportStore.fetchReports(); // វានឹងឆែក Role ដោយស្វ័យប្រវត្តក្នុង Store
+const editReport = reactive({
+  id: null,
+  title: '',
+  performanceSummary: '',
+  achievement: '',
+  areaForImprove: '',
+  comment: '',
+  rating: '',
+  reportPeriodStart: '',
+  reportPeriodEnd: '',
 });
+
+const fetchReports = async () => {
+  await reportStore.fetchAllReports({
+    _page: 1,
+    _per_page: 100,
+    sortBy: 'createdAt',
+    sortDir: 'DESC',
+  });
+};
 
 // ទាញទិន្នន័យពេល Component បើកដំបូង
 onMounted(async () => {
-  await reportStore.fetchAllReports();
+  await fetchReports();
 });
 
 // ប្រើ Getter ពី Store ដើម្បីបង្ហាញលេខលើ Stat Cards
@@ -42,6 +61,86 @@ const totalPages = computed(() => Math.ceil(filteredReports.value.length / items
 const handlePageChange = (page) => {
   currentPage.value = page;
   window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const formatInputDate = (dateString) => {
+  if (!dateString) return '';
+  return String(dateString).split('T')[0];
+};
+
+const openEditReportModal = (report) => {
+  Object.assign(editReport, {
+    id: report.id,
+    title: report.title || '',
+    performanceSummary: report.performanceSummary || '',
+    achievement: report.achievement || '',
+    areaForImprove: report.areaForImprove || '',
+    comment: report.comment || '',
+    rating: report.rating || '',
+    reportPeriodStart: formatInputDate(report.reportPeriodStart),
+    reportPeriodEnd: formatInputDate(report.reportPeriodEnd),
+  });
+  showEditReportModal.value = true;
+};
+
+const closeEditReportModal = () => {
+  if (isSubmitting.value) return;
+  showEditReportModal.value = false;
+};
+
+const handleUpdateReport = async () => {
+  if (!editReport.id) return;
+
+  if (!editReport.title.trim()) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Title is required',
+      confirmButtonColor: '#2D6A4F',
+    });
+    return;
+  }
+
+  isSubmitting.value = true;
+  try {
+    const payload = {
+      title: editReport.title.trim(),
+      performanceSummary: editReport.performanceSummary,
+      achievement: editReport.achievement,
+      areaForImprove: editReport.areaForImprove,
+      comment: editReport.comment,
+    };
+
+    if (editReport.rating) {
+      payload.rating = Number(editReport.rating);
+    }
+
+    if (editReport.reportPeriodStart) {
+      payload.reportPeriodStart = editReport.reportPeriodStart;
+    }
+
+    if (editReport.reportPeriodEnd) {
+      payload.reportPeriodEnd = editReport.reportPeriodEnd;
+    }
+
+    await reportStore.updateReport(editReport.id, payload);
+    showEditReportModal.value = false;
+    await fetchReports();
+    Swal.fire({
+      title: 'Report updated',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  } catch (error) {
+    Swal.fire({
+      title: 'Update failed',
+      text: error.response?.data?.message || error.message || 'Could not update report.',
+      icon: 'error',
+      confirmButtonColor: '#2D6A4F',
+    });
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 // មុខងារមើលលម្អិត
@@ -137,6 +236,81 @@ const handleDelete = async (id) => {
       </div>
     </div>
 
+    <BaseModal
+      :show="showEditReportModal"
+      title="Edit Report"
+      size="lg"
+      @close="closeEditReportModal"
+    >
+      <form @submit.prevent="handleUpdateReport">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Title</label>
+          <input
+            v-model="editReport.title"
+            type="text"
+            class="form-control"
+            :disabled="isSubmitting"
+            required
+          >
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Rating</label>
+            <select v-model="editReport.rating" class="form-select" :disabled="isSubmitting">
+              <option value="">Select rating</option>
+              <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Start Date</label>
+            <input
+              v-model="editReport.reportPeriodStart"
+              type="date"
+              class="form-control"
+              :disabled="isSubmitting"
+            >
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">End Date</label>
+            <input
+              v-model="editReport.reportPeriodEnd"
+              type="date"
+              class="form-control"
+              :disabled="isSubmitting"
+            >
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Performance Summary</label>
+          <textarea v-model="editReport.performanceSummary" class="form-control" rows="2" :disabled="isSubmitting"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Achievement</label>
+          <textarea v-model="editReport.achievement" class="form-control" rows="2" :disabled="isSubmitting"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Area For Improve</label>
+          <textarea v-model="editReport.areaForImprove" class="form-control" rows="2" :disabled="isSubmitting"></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Comment</label>
+          <textarea v-model="editReport.comment" class="form-control" rows="2" :disabled="isSubmitting"></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-light px-4" :disabled="isSubmitting" @click="closeEditReportModal">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-save-report px-4" :disabled="isSubmitting">
+            <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+            Save
+          </button>
+        </div>
+      </form>
+    </BaseModal>
+
     <!-- តារាងរបាយការណ៍ -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
       <div class="table-responsive">
@@ -177,6 +351,9 @@ const handleDelete = async (id) => {
                   <div class="d-flex justify-content-center gap-2">
                     <button @click="handleView(r)" class="btn-icon view-btn" title="មើលលម្អិត">
                       <i class="bi bi-eye"></i>
+                    </button>
+                    <button @click="openEditReportModal(r)" class="btn-icon edit-btn" title="Edit">
+                      <i class="bi bi-pencil-square"></i>
                     </button>
                     <button @click="handleDelete(r.id)" class="btn-icon delete-btn" title="លុប">
                       <i class="bi bi-trash"></i>
@@ -232,6 +409,9 @@ const handleDelete = async (id) => {
 /* Action Buttons */
 .btn-icon { background: none; border: none; font-size: 1.2rem; transition: 0.2s; }
 .view-btn { color: #2D6A4F; }
+.edit-btn { color: #0d6efd; }
 .delete-btn { color: #e74c3c; }
 .btn-icon:hover { transform: scale(1.2); }
+.btn-save-report { background: #2D6A4F; color: #fff; border: none; }
+.btn-save-report:hover { background: #24543f; color: #fff; }
 </style>
