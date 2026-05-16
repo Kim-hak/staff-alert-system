@@ -21,8 +21,9 @@ body {
   color: #2d3436;             
 }
 /* Custom Toast Styling */
+.Vue-Toastification__toast--success,
 .Vue-Toastification__toast--custom-success {
-  background-color: #5A9688 !important;
+  background-color: var(--primary-color) !important;
   color: white;
 }
 
@@ -32,7 +33,7 @@ body {
 }
 /* This makes the toast match your login button exactly */
 .custom-toast-success {
-  background-color: #5A9688 !important;
+  background-color: var(--primary-color) !important;
   color: white !important;
   font-size: 13px !important;
   padding: 10px 16px !important;
@@ -46,7 +47,7 @@ body {
 
 /* Minimalist Teal Toast */
 .custom-toast-success {
-  background-color: #5A9688 !important; /* Your specific color */
+  background-color: var(--primary-color) !important;
   color: white !important;
   min-height: 45px !important;           /* Shorter height */
   padding: 10px 15px !important;        /* Less padding */

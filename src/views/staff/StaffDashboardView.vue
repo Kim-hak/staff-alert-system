@@ -31,18 +31,6 @@
         />
       </div>
 
-      <!-- <div class="col-sm-6 col-xl-3">
-        <StatCard
-          title="ការផ្លាស់ប្តូរប្រាក់បៀវត្សរ៍"
-          :value="formattedSalaryChange"
-          :value-color="salaryChangeTextColor"
-          :subtitle="changeLabel"
-          :subtitle-class="changeClass"
-          icon="bi bi-graph-up-arrow"
-          :icon-color="salaryChangeIconColor"
-          bg-color="bg-light-purple"
-        />
-      </div> -->
     </div>
 
     <div v-if="errorMessage" class="alert alert-danger border-0 shadow-sm" role="alert">

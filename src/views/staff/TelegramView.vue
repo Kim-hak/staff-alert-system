@@ -97,16 +97,16 @@
               @click="openConnectModal"
             >
               <LinkIcon class="me-2" style="width:16px;height:16px;" />
-              {{ connectLoading ? "Connecting..." : "ភ្ជាប់ Telegram" }}
+              {{ connectLoading ? "កំពុងភ្ជាប់..." : "ភ្ជាប់ Telegram" }}
             </button>
 
             <button
               v-else
               class="btn btn-outline-danger w-100 rounded-3 fw-semibold py-2"
               :disabled="connectLoading || disconnectLoading"
-              @click="disconnectTelegram"
+              @click="openDisconnectModal"
             >
-              {{ disconnectLoading ? "Disconnecting..." : "ផ្តាច់ Telegram" }}
+              {{ disconnectLoading ? "កំពុងផ្តាច់..." : "ផ្តាច់ Telegram" }}
             </button>
 
             <p v-if="message" class="small text-center mt-3 mb-0" :class="messageClass">
@@ -203,7 +203,37 @@
           :disabled="connectLoading"
           @click="connectTelegram"
         >
-          {{ connectLoading ? "Connecting..." : "យល់ព្រម" }}
+          {{ connectLoading ? "កំពុងភ្ជាប់..." : "យល់ព្រម" }}
+        </button>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :show="showDisconnectModal"
+      title="ផ្តាច់ការភ្ជាប់ Telegram"
+      size="md"
+      @close="closeDisconnectModal"
+    >
+      <p class="text-secondary mb-0">
+        តើអ្នកប្រាកដជាចង់ផ្តាច់ Telegram មែនទេ?
+      </p>
+
+      <template #footer>
+        <button
+          type="button"
+          class="btn btn-light fw-semibold"
+          :disabled="disconnectLoading"
+          @click="closeDisconnectModal"
+        >
+          បោះបង់
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger fw-semibold"
+          :disabled="disconnectLoading"
+          @click="disconnectTelegram"
+        >
+          {{ disconnectLoading ? "កំពុងផ្តាច់..." : "ផ្តាច់ Telegram" }}
         </button>
       </template>
     </BaseModal>
@@ -223,6 +253,7 @@ const authStore = useAuthStore();
 const connectLoading = ref(false);
 const disconnectLoading = ref(false);
 const showConnectModal = ref(false);
+const showDisconnectModal = ref(false);
 const telegramConnectedStorageKey = "telegram-connected";
 const connectedOverride = ref(localStorage.getItem(telegramConnectedStorageKey) === "true" ? true : null);
 const message = ref("");
@@ -312,6 +343,15 @@ const closeConnectModal = () => {
   showConnectModal.value = false;
 };
 
+const openDisconnectModal = () => {
+  showDisconnectModal.value = true;
+};
+
+const closeDisconnectModal = () => {
+  if (disconnectLoading.value) return;
+  showDisconnectModal.value = false;
+};
+
 const setTelegramConnected = (value) => {
   connectedOverride.value = value;
 
@@ -386,9 +426,10 @@ const disconnectTelegram = async () => {
 
   try {
     const response = await api.post("telegram/disconnect");
+    showDisconnectModal.value = false;
     setTelegramConnected(false);
     messageType.value = "success";
-    message.value = response.data?.message || "Telegram disconnected successfully.";
+    message.value = "បានបិទការជូនដំណឹង Telegram និងផ្តាច់ការភ្ជាប់ហើយ";
     toast.success(message.value);
     await refreshProfile();
   } catch (error) {
