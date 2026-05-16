@@ -29,8 +29,8 @@
             title="ប្រាក់បៀវត្សរ៍មុន"
             :value="formatCurrency(latestSalary.previousSalary)"
             icon="bi bi-cash-stack"
-            iconColor="text-warning"
-            bgColor="bg-light-orange"
+            iconColor="text-success"
+            bgColor="bg-light-green"
           />
         </div>
 
@@ -60,54 +60,12 @@
         </div>
       </div>
 
-      <!-- <div class="row g-4 mb-4">
-        <div class="col-lg-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header text-white" style="background-color: var(--primary-color)">ប្រាក់បៀវត្សរ៍មុន</div>
-            <div class="card-body">
-              <div class="d-flex justify-content-between border-bottom py-2">
-                <span class="text-muted">ចំនួនទឹកប្រាក់</span>
-                <strong>{{ formatCurrency(latestSalary.previousSalary) }}</strong>
-              </div>
+     
 
-              <div class="d-flex justify-content-between py-2">
-                <span class="text-muted">ការផ្លាស់ប្តូរ</span>
-                <strong :class="changeClass">{{ formattedSalaryChange }}</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header text-white" style="background-color: var(--primary-color)">
-              ប្រាក់បៀវត្សរ៍បច្ចុប្បន្ន
-            </div>
-
-            <div class="card-body">
-              <div class="d-flex justify-content-between border-bottom py-2">
-                <span class="text-muted">ចំនួនទឹកប្រាក់</span>
-                <strong>{{ formatCurrency(latestSalary.newSalary) }}</strong>
-              </div>
-
-              <div class="d-flex justify-content-between border-bottom py-2">
-                <span class="text-muted">កាលបរិច្ឆេទអនុវត្ត</span>
-                <strong>{{ formatDate(latestSalary.effectiveDate) }}</strong>
-              </div>
-
-              <div class="d-flex justify-content-between py-2 gap-3">
-                <span class="text-muted">មូលហេតុ</span>
-                <strong class="text-end">{{ latestSalary.changeReason || 'មិនមាន' }}</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> -->
-
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm salary-history-card">
         <div class="card-header bg-white fw-semibold">ប្រវត្តិការផ្លាស់ប្តូរ</div>
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
+        <div class="table-responsive salary-table-wrap">
+          <table class="table align-middle mb-0 salary-table">
             <thead class="table-light">
               <tr>
                 <th>កាលបរិច្ឆេទអនុវត្ត</th>
@@ -119,13 +77,13 @@
             </thead>
             <tbody>
               <tr v-for="salary in salaryHistory" :key="salary.id">
-                <td>{{ formatDate(salary.effectiveDate) }}</td>
-                <td>{{ formatCurrency(salary.previousSalary) }}</td>
-                <td>{{ formatCurrency(salary.newSalary) }}</td>
-                <td :class="getChangeClass(salary)">
+                <td data-label="កាលបរិច្ឆេទអនុវត្ត">{{ formatDate(salary.effectiveDate) }}</td>
+                <td data-label="ប្រាក់បៀវត្សរ៍មុន">{{ formatCurrency(salary.previousSalary) }}</td>
+                <td data-label="ប្រាក់បៀវត្សរ៍ថ្មី">{{ formatCurrency(salary.newSalary) }}</td>
+                <td data-label="ការផ្លាស់ប្តូរ" :class="getChangeClass(salary)">
                   {{ formatSalaryChange(salary) }}
                 </td>
-                <td class="text-muted">{{ salary.changeReason || 'មិនមាន' }}</td>
+                <td data-label="មូលហេតុ" class="text-muted salary-reason">{{ salary.changeReason || 'មិនមាន' }}</td>
               </tr>
             </tbody>
           </table>
@@ -234,3 +192,101 @@ const getChangeClass = (salary) => {
 
 onMounted(fetchSalaryHistory)
 </script>
+
+<style scoped>
+.salary-history-card {
+  overflow: hidden;
+}
+
+.salary-table-wrap {
+  margin-bottom: 0;
+}
+
+.salary-table {
+  min-width: 760px;
+}
+
+.salary-table th {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.salary-table td {
+  color: #334155;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.salary-table .salary-reason {
+  max-width: 280px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+  .salary-table-wrap {
+    overflow: visible;
+  }
+
+  .salary-table {
+    min-width: 0;
+    border-collapse: separate;
+    border-spacing: 0 0.85rem;
+  }
+
+  .salary-table thead {
+    display: none;
+  }
+
+  .salary-table,
+  .salary-table tbody,
+  .salary-table tr,
+  .salary-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .salary-table tbody {
+    padding: 0.75rem;
+  }
+
+  .salary-table tr {
+    background: #fff;
+    border: 1px solid #e9eef4;
+    border-radius: 12px;
+    box-shadow: 0 0.25rem 0.75rem rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+  }
+
+  .salary-table td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 0;
+    border-bottom: 1px solid #eef2f7;
+    padding: 0.8rem 0.95rem;
+    text-align: right;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .salary-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .salary-table td::before {
+    content: attr(data-label);
+    color: #64748b;
+    font-weight: 700;
+    text-align: left;
+    flex: 0 0 44%;
+  }
+
+  .salary-table .salary-reason {
+    max-width: none;
+  }
+}
+</style>

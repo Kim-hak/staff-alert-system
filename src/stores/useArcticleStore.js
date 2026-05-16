@@ -1,31 +1,49 @@
 import api from "@/api/api";
-import { defineStore } from "pinia"
-import { reactive, ref } from "vue"
-export const useArcticleStore = defineStore('arcticle', () => {
-    const allArcticles = ref([]);
-    const loading = ref(false); 
+import { defineStore } from "pinia";
+import { reactive, ref, watch } from "vue";
 
-     let pagination = reactive({
-        totalPages:0
-    })
-    const fectchAllArcticles = async () => {
+export const useArcticleStore = defineStore("arcticle", () => {
+    const allArcticles = ref([]);
+    const loading = ref(false);
+    const search = ref("");
+
+
+    const pagination = reactive({
+        currentPage: 1,
+        perPage: 10,
+        totalPages: 5
+
+    });
+
+    const fectchAllArcticles = async (page = 1) => {
         loading.value = true;
+
         try {
-            const res = await api.get(`users?_page=1&_per_page=10&search=&status=ACTIVATED&sortBy=createdAt&sortDir=DESC`);
-       
-            allArcticles.value = res.data.data.items; 
-            // pagination.totalPages = res.data.data.totalPages;
+        pagination.currentPage = page;
+
+        const res = await api.get(
+            `users?_page=${page}&_per_page=${pagination.perPage}&search=&status=ACTIVATED&sortBy=createdAt&sortDir=DESC`
+        );
+
+        allArcticles.value = res.data.data.items;
+
+    
         } catch (error) {
-            console.error(error);
+        //   console.error(error);
         } finally {
-            loading.value = false;
+        loading.value = false;
         }
-    }
-  
-    return {
-        allArcticles, 
-        loading,
-        fectchAllArcticles,
-        pagination
-    }
-})
+
+    };
+    watch(search, () => {
+        fectchAllArcticles(1);
+    });
+
+  return {
+    allArcticles,
+    loading,
+    pagination,
+    search,
+    fectchAllArcticles
+  };
+});

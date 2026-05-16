@@ -6,19 +6,22 @@
         class="custom-modal-overlay"
         @click.self="$emit('close')"
       >
-        <div class="custom-modal-dialog">
+        <div class="custom-modal-dialog" :class="sizeClass">
           <div class="custom-modal-content">
             <div
               class="custom-modal-header d-flex justify-content-between align-items-center"
             >
               <h5 class="mb-0 fw-bold">{{ title }}</h5>
-              <button @click="$emit('close')" class="btn-close-custom">
+
+              <button class="btn-close-custom" @click="$emit('close')">
                 <i class="bi bi-x-lg"></i>
               </button>
             </div>
 
             <div class="p-4">
-              <slot />
+              <slot name="body">
+                <slot />
+              </slot>
             </div>
 
             <div v-if="$slots.footer" class="custom-modal-footer">
@@ -32,8 +35,25 @@
 </template>
 
 <script setup>
-defineProps({ show: Boolean, title: String });
+import { computed } from "vue";
+
+const props = defineProps({
+  show: Boolean,
+  title: String,
+  size: {
+    type: String,
+    default: "md",
+  },
+});
 defineEmits(["close"]);
+
+const sizeClass = computed(() => {
+  return {
+    "modal-sm": props.size === "sm",
+    "modal-lg": props.size === "lg",
+    "modal-xl": props.size === "xl",
+  };
+});
 </script>
 
 <style scoped>
@@ -52,8 +72,18 @@ defineEmits(["close"]);
 }
 .custom-modal-dialog {
   width: 100%;
-  max-width: 500px; /* កែសម្រួលទំហំ Modal ឱ្យតូចជាងមុន */
+  max-width: 500px;
   padding: 1rem;
+  transition: max-width 0.3s ease;
+}
+.custom-modal-dialog.modal-sm {
+  max-width: 350px;
+}
+.custom-modal-dialog.modal-lg {
+  max-width: 800px;
+}
+.custom-modal-dialog.modal-xl {
+  max-width: 1140px;
 }
 .custom-modal-content {
   background: white;

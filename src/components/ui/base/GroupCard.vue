@@ -32,8 +32,8 @@
         >
           <button
             class="btn btn-white-glass rounded-circle p-2 shadow-sm action-btn"
-            @click.stop="$refs.fileInput.click()"
-            title="ប្តូររូបភាព"
+            @click.stop="fileInput.click()"
+            title="Change thumbnail"
           >
             <i class="bi bi-camera-fill"></i>
           </button>
@@ -41,7 +41,7 @@
             v-if="thumbnail"
             class="btn btn-danger-glass rounded-circle p-2 shadow-sm action-btn"
             @click.stop="$emit('delete-thumbnail')"
-            title="លុបរូបភាព"
+            title="Delete thumbnail"
           >
             <i class="bi bi-trash-fill"></i>
           </button>
@@ -65,7 +65,7 @@
           <button
             class="btn btn-light-custom btn-sm rounded-circle p-2 shadow-sm"
             @click="$emit('edit')"
-            title="កែសម្រួលក្រុម"
+            title="Edit group"
           >
             <i class="bi bi-pencil-square"></i>
           </button>
@@ -102,8 +102,9 @@
 
         <button
           class="btn btn-light-custom btn-sm rounded-pill px-3 fw-medium transition-all"
+          @click="$emit('members')"
         >
-          មើលសមាជិក <i class="bi bi-arrow-right ms-1"></i>
+          View members <i class="bi bi-arrow-right ms-1"></i>
         </button>
       </div>
     </div>
@@ -111,9 +112,10 @@
 </template>
 
 <script setup>
+import { ref } from "vue";
 import BaseCard from "./BaseCard.vue";
 
-const props = defineProps({
+defineProps({
   thumbnail: String,
   name: { type: String, required: true },
   description: String,
@@ -123,123 +125,79 @@ const props = defineProps({
 });
 const emit = defineEmits([
   "edit",
-  "delete",
-  "update-thumbnail",
   "delete-thumbnail",
+  "members",
+  "update-thumbnail",
 ]);
+
+const fileInput = ref(null);
 
 const onFileSelected = (event) => {
   const file = event.target.files[0];
   if (file) {
     emit("update-thumbnail", file);
+    // Reset the input value so the same file can be selected again if needed
+    event.target.value = "";
   }
 };
 </script>
 
 <style scoped>
-.group-card-wrapper {
-  transition:
-    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.3s ease;
-}
-
 .group-image-container {
-  height: 180px;
+  height: 200px;
   background-color: #f8f9fa;
 }
 
 .group-img {
-  transition: transform 0.5s ease;
+  object-position: center;
 }
 
-.group-card-wrapper:hover .group-img {
-  transform: scale(1.08);
-}
-
-.thumbnail-actions {
-  opacity: 0;
-  transform: translateY(-5px);
-  transition: all 0.3s ease;
-  z-index: 5;
-}
-
-.group-image-container:hover .thumbnail-actions {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.action-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
+.image-placeholder {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 .btn-white-glass {
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  color: #333;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #52796f;
 }
 
 .btn-white-glass:hover {
   background: white;
-  transform: scale(1.05);
+  color: #354f52;
+  transform: scale(1.1);
 }
 
 .btn-danger-glass {
-  background: rgba(220, 53, 69, 0.9);
-  border: none;
-  color: white;
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+  background: rgba(220, 53, 69, 0.1);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  color: #dc3545;
 }
 
 .btn-danger-glass:hover {
   background: #dc3545;
-  transform: scale(1.05);
+  color: white;
+  transform: scale(1.1);
 }
 
-.text-primary-custom {
-  color: #52796f;
+.action-btn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.bg-primary-subtle {
-  background-color: rgba(82, 121, 111, 0.1);
-}
-
-.manager-avatar-mini {
-  width: 32px;
-  height: 32px;
-  font-size: 0.8rem;
-}
-
-.extra-small {
+.member-badge {
+  z-index: 2;
   font-size: 0.75rem;
 }
 
-.group-name {
-  font-size: 1.1rem;
-  letter-spacing: -0.01em;
-}
-
-.group-description {
-  min-height: 3em;
-  line-height: 1.5;
-}
-
-.btn-light-custom {
-  background-color: #f8f9fa;
-  border: 1px solid #eee;
-  color: #52796f;
-  font-size: 0.85rem;
-}
-
-.btn-light-custom:hover {
-  background-color: #52796f;
-  color: white;
-  border-color: #52796f;
+.extra-small {
+  font-size: 0.7rem;
 }
 
 .line-clamp-1 {
@@ -256,10 +214,31 @@ const onFileSelected = (event) => {
   overflow: hidden;
 }
 
-.inset-0 {
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+.btn-light-custom {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  color: #6c757d;
+  transition: all 0.2s ease;
+}
+
+.btn-light-custom:hover {
+  background-color: #e9ecef;
+  color: #52796f;
+  border-color: #52796f;
+}
+
+.manager-avatar-mini {
+  width: 32px;
+  height: 32px;
+  font-size: 0.85rem;
+}
+
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.group-card-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
 }
 </style>

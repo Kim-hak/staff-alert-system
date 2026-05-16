@@ -10,7 +10,7 @@
     <!-- Nav Links -->
   <div class="sidebar-nav px-2">
 
-  <template v-if="roleId === 1">
+  <template v-if="roleKey === 'admin'">
     <RouterLink :to="{ name: 'adminDashboard' }" class="nav-item-custom">
       <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
     </RouterLink>
@@ -23,7 +23,7 @@
     <RouterLink :to="{ name: 'adminReports' }" class="nav-item-custom">
       <i class="bi bi-file-earmark-bar-graph-fill"></i><span>របាយការណ៍</span>
     </RouterLink>
-    <RouterLink :to="{ name: 'adminSalary' }" class="nav-item-custom">
+    <RouterLink :to="{ name: 'adminNotifications' }" class="nav-item-custom">
       <i class="bi bi-bell-fill"></i><span>ការជូនដំណឹង</span>
     </RouterLink>
     <RouterLink :to="{ name: 'adminProfile' }" class="nav-item-custom">
@@ -32,7 +32,7 @@
   </template>
 
 <!-- ផ្នែក MANAGER (role.id === 2) -->
-<template v-if="roleId === 2">
+<template v-if="roleKey === 'manager'">
   <RouterLink :to="{ name: 'managerDashboard' }" class="nav-item-custom">
     <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
   </RouterLink>
@@ -58,7 +58,7 @@
 </template>
 
       <!-- ── STAFF (role.id === 3) ── -->
-      <template v-if="roleId === 3">
+      <template v-if="roleKey === 'staff'">
         <RouterLink :to="{ name: 'staffDashboard' }" class="nav-item-custom">
           <i class="bi bi-grid-fill"></i><span>ផ្ទាំងគ្រប់គ្រង</span>
         </RouterLink>
@@ -100,6 +100,7 @@
 import { computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
+import { getRoleKey } from '@/utils/roles'
 import Swal from 'sweetalert2'
 
 
@@ -108,7 +109,7 @@ defineProps({ isOpen: Boolean, isMobile: Boolean })
 const authStore = useAuthStore()
 const router    = useRouter()
 
-const roleId = computed(() => authStore.profile?.role?.id)
+const roleKey = computed(() => getRoleKey(authStore.profile))
 
 const userName = computed(() => {
   const p = authStore.profile
@@ -116,7 +117,11 @@ const userName = computed(() => {
   return (p.fullname || `${p.firstName||''} ${p.lastName||''}`).trim() || 'User'
 })
 const userInitial = computed(() => userName.value.charAt(0).toUpperCase())
-const userRole    = computed(() => ({ 1:'ADMIN', 2:'MANAGER', 3:'STAFF' }[roleId.value] || 'USER'))
+const userRole = computed(() => ({
+  admin: 'ADMIN',
+  manager: 'MANAGER',
+  staff: 'STAFF',
+}[roleKey.value] || 'USER'))
 
 const doLogout = () => {
   Swal.fire({
@@ -124,19 +129,17 @@ const doLogout = () => {
     text: "អ្នកនឹងត្រូវចាកចេញពីប្រព័ន្ធ!",
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#2D6A4F', // ពណ៌បៃតងចាស់ (AlertGo Style)
-    cancelButtonColor: '#d33',
+    confirmButtonColor: '#d33', 
+    cancelButtonColor: '#2D6A4F',
     confirmButtonText: 'បាទ ចាកចេញ!',
     cancelButtonText: 'បោះបង់',
     reverseButtons: true,
-    // ថែមស្ទីលឱ្យត្រូវជាមួយ Dashboard របស់អ្នក
+    
     background: '#ffffff',
     color: '#1b4332'
   }).then(async (result) => {
     if (result.isConfirmed) {
       await authStore.logout()
-      
-      // បង្ហាញការជោគជ័យបែបទំនើប
       Swal.fire({
         title: 'ចាកចេញជោគជ័យ!',
         text: 'ជួបគ្នាពេលក្រោយ!',
