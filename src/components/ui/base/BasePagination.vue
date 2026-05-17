@@ -32,16 +32,22 @@
 
 <script setup>
 const props = defineProps({
-  currentPage: Number,
-  totalPages: Number
-})
+  currentPage: {
+    type: Number,
+    default: 1
+  },
+  totalPages: {
+    type: Number,
+    default: 1
+  }
+});
 
-const emit = defineEmits(['change-page'])
+const emit = defineEmits(["change-page"]);
 
 const goToPage = (page) => {
-  if (page < 1 || page > props.totalPages) return
-  emit('change-page', page)
-}
+  if (page < 1 || page > props.totalPages) return;
+  emit("change-page", page);
+};
 </script>
 
 <style scoped>

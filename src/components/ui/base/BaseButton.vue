@@ -5,7 +5,7 @@
     </span>
     
     <span class="btn-text">
-      <slot>Default Label</slot>
+      <slot name="default">Default Label</slot>
     </span>
   </button>
 </template>
@@ -18,7 +18,7 @@
   justify-content: center;
   gap: 6px;
   padding: 14px 18px;
-  border-radius: 14px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
   
