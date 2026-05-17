@@ -16,9 +16,9 @@ let loading = ref(false);
 function validationEmail(){
   return (validatField('email', form.email, 'សូមបញ្ចូលអ៊ីមែលរបស់អ្នក'));
 } 
-// function validationPassword(){
-//   return (validatField('password', form.password, 'សូមបញ្ចូលពាក្យសម្ងាត់របស់អ្នក'));
-// } 
+function validationPassword(){
+  return (validatField('password', form.password, 'សូមបញ្ចូលពាក្យសម្ងាត់របស់អ្នក'));
+} 
 const validationPassword = () => validatField('password', form.password, 'សូមបញ្ចូលពាក្យសម្ងាត់របស់អ្នក')
 
 
