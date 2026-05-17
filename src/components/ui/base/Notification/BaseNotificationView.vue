@@ -143,7 +143,18 @@ const store =useNotificationStore();
 const currentTab = ref('all')
 
 onMounted(() => {
-  store.fetchNotifications()
+      store.fetchNotifications()
+      
+    store.addLocalNotification({
+    id: Date.now(),
+    title: "Test Notification",
+    message: "This is test for admin",
+    isRead: false,
+    time: new Date().toLocaleString(),
+    icon: "bi bi-file-earmark-text",
+    typeClass: "bg-info bg-opacity-10 text-info"
+  })
+
 })
 
 const filteredNotifications = computed(() => {
