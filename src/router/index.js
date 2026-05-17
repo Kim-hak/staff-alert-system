@@ -39,6 +39,9 @@ import SalaryView from "@/views/staff/SalaryView.vue";
 import ProfileView from "@/views/staff/ProfileView.vue"; // នេះជា Profile របស់ Staff
 import AdminProfile from '@/views/admin/AdminProfile.vue';
 import TelegramView from '@/views/staff/TelegramView.vue';
+import GroupsView from '@/views/admin/GroupsView.vue';
+import GetUserByIDView from '@/views/admin/GetUserByIDView.vue';
+
 
 
 
@@ -92,8 +95,9 @@ const router = createRouter({
   children: [
     { path: "dashboard", name: "adminDashboard", component: AdminDashboardView },
     { path: "users", name: "adminUsers", component: UsersView },
-    { path: "groups", name: "adminGroups", component: () => import('@/views/admin/GroupsView.vue') },
+    { path: "groups", name: "adminGroups", component:GroupsView },
     { path: "staff", name: "adminStaff", component: StaffManagementView },
+    { path: "users/:id", name: "adminUserDetail", component:GetUserByIDView },
     { path: "reports", name: "adminReports", component: ReportsView },
     { path: "notifications", name: "adminNotifications", component: NotificationsView },
     { path: "profile", name: "adminProfile", component: AdminProfile },
