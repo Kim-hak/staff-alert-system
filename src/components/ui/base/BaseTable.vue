@@ -41,12 +41,13 @@
         </tr>
 
         <tr v-else-if="!data || data.length === 0">
-          <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="text-center py-5 text-muted">
+          <td :colspan="columns + ($slots.actions ? 1 : 0)" class="text-center py-5 text-muted">
             <i class="bi bi-inbox fs-2 d-block mb-2 text-light-muted"></i> No data available
           </td>
         </tr>
 
-        <tr v-else v-for="(item, index) in data" :key="item.id || index" class="custom-row">
+        <tr v-else v-for="(item, index) in data" :key="item.id || index" class="custom-row"
+          @click="$emit('row-click', item)" style="cursor:pointer">
 
           <td v-for="col in columns" :key="col.key" class="py-3 px-4">
 
@@ -87,6 +88,7 @@ defineProps({
   loading: Boolean
 
 });
+defineEmits(["row-click"]);
 
 </script>
 
