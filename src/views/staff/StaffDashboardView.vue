@@ -1,5 +1,8 @@
 <template>
   <div class="staff-dashboard fade-in">
+     <div class="mb-4 text-start">
+      <h2 class="fw-bold mb-1 khmer-font">ផ្ទាំងគ្រប់គ្រង</h2>
+    </div>
     <div class="row g-4 mb-4">
       <div class="col-sm-6 col-xl-4">
         <StatCard
