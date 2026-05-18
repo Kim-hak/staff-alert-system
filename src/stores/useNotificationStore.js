@@ -1,6 +1,5 @@
-import { defineStore } from 'pinia';
-import axios from 'axios';
-import { useAuthStore } from './useAuth'; // ទាញយកតួនាទីអ្នកប្រើពី store ផ្ទៀងផ្ទាត់
+import { defineStore } from 'pinia'
+import api from '@/api/api'
 
 export const useNotificationStore = defineStore('notification', {
   state: () => ({
@@ -11,37 +10,82 @@ export const useNotificationStore = defineStore('notification', {
 
   actions: {
     async fetchNotifications() {
-      this.isLoading = true;
-      const authStore = useAuthStore();
-      const role = authStore.profile?.role?.name?.toUpperCase(); // ឆែកមើលថាជា ADMIN ឬ MANAGER
+      this.isLoading = true
 
       try {
-        // ប្តូរ Endpoint ទៅតាមតួនាទីរបស់អ្នកប្រើ
-        let endpoint = '/notifications';
-        if (role === 'ADMIN') {
-          endpoint = '/admin/notifications';
-        } else if (role === 'MANAGER') {
-          endpoint = '/manager/notifications';
-        }
+        const response = await api.get('/notifications')
+        const serverNotifications = response.data?.data?.items || []
 
-        const response = await axios.get(endpoint);
-        this.notifications = response.data?.data?.items || [];
-        this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+        // merge local + server without duplicate
+        const localOnly = this.notifications.filter(
+          local => !serverNotifications.some(server => server.id === local.id)
+        )
+
+        this.notifications = [...localOnly, ...serverNotifications]
+
+        this.unreadCount = this.notifications.filter(n => !n.isRead).length
       } catch (error) {
-        console.error("Fetch Notifications Error:", error);
+        console.error('Fetch Notifications Error:', error)
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
     },
 
-    // មុខងារលុបដែលប្រើបានទាំងពីរ Role
+    addLocalNotification(notification) {
+      this.notifications.unshift(notification)
+      this.unreadCount++
+    },
+
     async deleteNotification(id) {
-      try {
-        await axios.delete(`/notifications/${id}`);
-        this.notifications = this.notifications.filter(n => n.id !== id);
-      } catch (error) {
-        console.error("Delete Error:", error);
+      if (String(id).length >= 13) {
+        this.notifications = this.notifications.filter(n => n.id !== id)
+        this.unreadCount = this.notifications.filter(n => !n.isRead).length
+        return
       }
+
+      try {
+        await api.delete(`/notifications/${id}`)
+        this.notifications = this.notifications.filter(n => n.id !== id)
+        this.unreadCount = this.notifications.filter(n => !n.isRead).length
+      } catch (error) {
+        console.error("Delete Error:", error)
+      }
+    },
+
+    async markAsRead(id) {
+      const notification = this.notifications.find(n => n.id === id)
+
+      // local notification (Date.now id)
+      if (String(id).length >= 13) {
+        if (notification) notification.isRead = true
+        this.unreadCount = this.notifications.filter(n => !n.isRead).length
+        return true
+      }
+
+      try {
+        await api.put(`/notifications/${id}/read`)
+        if (notification) notification.isRead = true
+        this.unreadCount = this.notifications.filter(n => !n.isRead).length
+        return true
+      } catch (error) {
+        console.error("Mark Read Error:", error)
+        return false
+      }
+    },
+
+    async markAllAsRead() {
+      try {
+        await api.put('/notifications/read-all')
+      } catch (error) {
+        console.error('Mark All Read Error:', error)
+      }
+
+      this.notifications = this.notifications.map(n => ({
+        ...n,
+        isRead: true
+      }))
+
+      this.unreadCount = 0
     }
   }
-});
+})

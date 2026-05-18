@@ -40,6 +40,9 @@ import SalaryView from "@/views/staff/SalaryView.vue";
 import ProfileView from "@/views/staff/ProfileView.vue"; // នេះជា Profile របស់ Staff
 import AdminProfile from '@/views/admin/AdminProfile.vue';
 import TelegramView from '@/views/staff/TelegramView.vue';
+import GroupsView from '@/views/admin/GroupsView.vue';
+import GetUserByIDView from '@/views/admin/GetUserByIDView.vue';
+
 
 const DASHBOARD_ROUTE_BY_ROLE = {
   admin: 'adminDashboard',
@@ -109,8 +112,9 @@ const router = createRouter({
   children: [
     { path: "dashboard", name: "adminDashboard", component: AdminDashboardView },
     { path: "users", name: "adminUsers", component: UsersView },
-    { path: "groups", name: "adminGroups", component: () => import('@/views/admin/GroupsView.vue') },
+    { path: "groups", name: "adminGroups", component:GroupsView },
     { path: "staff", name: "adminStaff", component: StaffManagementView },
+    { path: "users/:id", name: "adminUserDetail", component:GetUserByIDView },
     { path: "reports", name: "adminReports", component: ReportsView },
     { path: "salary", name: "adminSalary", component: SalaryManagementView },
     { path: "notifications", name: "adminNotifications", component: NotificationsView },
@@ -171,6 +175,14 @@ router.beforeEach(async (to) => {
   const authStore = useAuthStore();
   const token = localStorage.getItem('token'); // Direct read for instant check
 
+  const redirectByRole = (profile) => {
+    const roleKey = getRoleKey(profile);
+    if (roleKey === 'admin') return { name: 'adminDashboard' };
+    if (roleKey === 'manager') return { name: 'managerDashboard' };
+    if (roleKey === 'staff') return { name: 'staffDashboard' };
+    return { name: 'notFound' };
+  };
+
   // If no token exists and the page isn't 'Login' or 'Forgot Password'
   if (!token && (to.meta.requiresAuth || !to.meta.guest)) {
     authStore.logoutLocal(); // Clear Pinia state
@@ -182,7 +194,7 @@ router.beforeEach(async (to) => {
     try {
       await authStore.fetchProfile();
     } catch (error) {
-      localStorage.removeItem('token');
+      authStore.logoutLocal();
       return { name: 'Login' };
     }
   }

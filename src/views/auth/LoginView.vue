@@ -148,7 +148,6 @@ async function handleLogin() {
       toast.success("បានចូលគណនីដោយជោគជ័យ", {
         timeout: 2000,
         position: "top-right",
-        // ADD THIS LINE TO APPLY YOUR COLOR AND SIZE:
         toastClassName: "custom-toast-success" 
       });
 

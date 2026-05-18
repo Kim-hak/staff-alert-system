@@ -1,7 +1,7 @@
 <template>
-  <div class="fade-in">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-
+  <div class="fade-in" style="padding: 1.5rem">
+    <div class="mb-4 text-start">
+      <h2 class="fw-bold mb-1 khmer-font">ប្រវត្តិប្រាក់បៀវត្សរ៍</h2>
     </div>
 
     <div v-if="errorMessage" class="alert alert-danger border-0 shadow-sm" role="alert">
@@ -25,42 +25,24 @@
     <template v-else>
       <div class="row g-4 mb-4">
         <div class="col-md-4">
-          <StatCard
-            title="ប្រាក់បៀវត្សរ៍មុន"
-            :value="formatCurrency(latestSalary.previousSalary)"
-            icon="bi bi-cash-stack"
-            iconColor="text-success"
-            bgColor="bg-light-green"
-          />
+          <StatCard title="ប្រាក់បៀវត្សរ៍មុន" :value="formatCurrency(latestSalary.previousSalary)"
+            icon="bi bi-cash-stack" iconColor="text-success" bgColor="bg-light-green" />
         </div>
 
         <div class="col-md-4">
-          <StatCard
-            title="ប្រាក់បៀវត្សរ៍បច្ចុប្បន្ន"
-            subtitle="ប្រាក់បៀវត្សរ៍ចុងក្រោយ"
-            :value="formatCurrency(latestSalary.newSalary)"
-            icon="bi bi-currency-dollar"
-            iconColor="text-success"
-            bgColor="bg-light-green"
-            :subtitleClass="changeClass"
-          />
+          <StatCard title="ប្រាក់បៀវត្សរ៍បច្ចុប្បន្ន" subtitle="ប្រាក់បៀវត្សរ៍ចុងក្រោយ"
+            :value="formatCurrency(latestSalary.newSalary)" icon="bi bi-currency-dollar" iconColor="text-success"
+            bgColor="bg-light-green" :subtitleClass="changeClass" />
         </div>
 
         <div class="col-md-4">
-          <StatCard
-            title="ការផ្លាស់ប្តូរប្រាក់បៀវត្សរ៍"
-            :value="formattedSalaryChange"
-            :valueColor="salaryChangeTextColor"
-            :subtitle="changeLabel"
-            :subtitleClass="changeClass"
-            icon="bi bi-graph-up-arrow"
-            :iconColor="salaryChangeIconColor"
-            bgColor="bg-light-blue"
-          />
+          <StatCard title="ការផ្លាស់ប្តូរប្រាក់បៀវត្សរ៍" :value="formattedSalaryChange"
+            :valueColor="salaryChangeTextColor" :subtitle="changeLabel" :subtitleClass="changeClass"
+            icon="bi bi-graph-up-arrow" :iconColor="salaryChangeIconColor" bgColor="bg-light-blue" />
         </div>
       </div>
 
-     
+
 
       <div class="card border-0 shadow-sm salary-history-card">
         <div class="card-header bg-white fw-semibold">ប្រវត្តិការផ្លាស់ប្តូរ</div>

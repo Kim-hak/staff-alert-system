@@ -141,13 +141,13 @@ function getGroupName(group) {
   return String(group.name || group.groupName || group.group_name || '');
 }
 
-const getGroupImage = (group) => {
+function getGroupImage(group) {
   return group.thumbnail || group.avatar || group.image || group.photo || '';
-};
+}
 
-const getManagerId = (group) => {
+function getManagerId(group) {
   return group.managerId || group.manager?.id || group.manager_id || '';
-};
+}
 
 function getManagerName(group) {
   return group.managerName
@@ -157,19 +157,21 @@ function getManagerName(group) {
     || 'Unassigned';
 }
 
-const getMembersCount = (group) => {
+function getMembersCount(group) {
   if (typeof group.membersCount === 'number') return group.membersCount;
   if (typeof group.memberCount === 'number') return group.memberCount;
   if (Array.isArray(group.members)) return group.members.length;
   if (Array.isArray(group.staffs)) return group.staffs.length;
   return 0;
-};
+}
 
-const getGroupMembers = (group) => firstArray(group, ['members', 'staffs', 'users']);
+function getGroupMembers(group) {
+  return firstArray(group, ['members', 'staffs', 'users']);
+}
 
-const getGroupMemberIds = (group) => {
+function getGroupMemberIds(group) {
   return getGroupMembers(group).map((member) => toId(getUserId(member))).filter(Boolean);
-};
+}
 
 const existingMemberIds = computed(() => selectedGroupForMembers.value ? getGroupMemberIds(selectedGroupForMembers.value) : []);
 const staffOptions = computed(() => {

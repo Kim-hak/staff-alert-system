@@ -52,7 +52,8 @@
 </template>
 
 <script setup>
-import BaseCard from './BaseCard.vue';
+import { ref } from "vue";
+import BaseCard from "./BaseCard.vue";
 
 defineProps({
   thumbnail: String,
@@ -60,7 +61,7 @@ defineProps({
   description: String,
   managerName: String,
   membersCount: { type: Number, default: 0 },
-  createdAt: String
+  createdAt: String,
 });
 
 const emit = defineEmits(['edit', 'delete', 'members', 'upload-thumbnail']);
@@ -117,6 +118,42 @@ const onFileSelected = (event) => {
   overflow: hidden;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.btn-light-custom {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  color: #6c757d;
+  transition: all 0.2s ease;
+}
+
+.btn-light-custom:hover {
+  background-color: #e9ecef;
+  color: #52796f;
+  border-color: #52796f;
+}
+
+.manager-avatar-mini {
+  width: 32px;
+  height: 32px;
+  font-size: 0.85rem;
+}
+
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.group-card-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
 }
 
 .created-text {

@@ -48,6 +48,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuth'
+import { getRoleKey } from '@/utils/roles'
 import Swal from 'sweetalert2'
 defineEmits(['toggle'])
 
@@ -65,19 +66,19 @@ const displayName = computed(() => {
 const initial = computed(() => displayName.value.charAt(0).toUpperCase())
 
 const roleLabel = computed(() => {
-  switch (Number(authStore.profile?.role?.id)) {
-    case 1: return 'ADMIN'
-    case 2: return 'MANAGER'
-    case 3: return 'STAFF'
+  switch (getRoleKey(authStore.profile)) {
+    case 'admin': return 'ADMIN'
+    case 'manager': return 'MANAGER'
+    case 'staff': return 'STAFF'
     default: return 'USER'
   }
 })
 
 const profileRoute = computed(() => {
-  switch (Number(authStore.profile?.role?.id)) {
-    case 1: return { name: 'adminProfile' }
-    case 2: return { name: 'managerProfile' }
-    case 3: return { name: 'staffProfile' }
+  switch (getRoleKey(authStore.profile)) {
+    case 'admin': return { name: 'adminProfile' }
+    case 'manager': return { name: 'managerProfile' }
+    case 'staff': return { name: 'staffProfile' }
     default: return { name: 'Login' }
   }
 })
@@ -85,15 +86,14 @@ const profileRoute = computed(() => {
 const doLogout = () => {
   Swal.fire({
     title: 'តើអ្នកប្រាកដទេ?',
-    text: "អ្នកនឹងត្រូវចាកចេញពីប្រព័ន្ធ!",
+    text: 'អ្នកនឹងត្រូវចាកចេញពីប្រព័ន្ធ!',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#d33', 
+    confirmButtonColor: '#d33',
     cancelButtonColor: '#2D6A4F',
     confirmButtonText: 'បាទ ចាកចេញ!',
     cancelButtonText: 'បោះបង់',
     reverseButtons: true,
-    // ថែមស្ទីលឱ្យត្រូវជាមួយ Dashboard របស់អ្នក
     background: '#ffffff',
     color: '#1b4332'
   }).then(async (result) => {
@@ -113,6 +113,7 @@ const doLogout = () => {
     }
   })
 }
+
 // Close dropdown on outside click
 function handleOutside(e) {
   if (dropRef.value && !dropRef.value.contains(e.target)) dropOpen.value = false
