@@ -1,417 +1,1290 @@
 <script setup>
-import { ref, onMounted, computed, reactive } from 'vue';
-import { useReportStore } from '@/stores/useReportStore';
-import BasePagination from '@/components/ui/base/BasePagination.vue';
-import BaseModal from '@/components/ui/base/BaseModal.vue';
-import Swal from 'sweetalert2';
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import BasePagination from '@/components/ui/base/BasePagination.vue'
+import { useReportStore } from '@/stores/useReportStore'
+import Swal from 'sweetalert2'
 
-const reportStore = useReportStore();
-const searchQuery = ref('');
-const currentPage = ref(1);
-const itemsPerPage = 6;
-const showEditReportModal = ref(false);
-const isSubmitting = ref(false);
+const reportStore = useReportStore()
 
-const editReport = reactive({
-  id: null,
+const searchQuery = ref('')
+const statusFilter = ref('')
+const currentPage = ref(1)
+const isDetailLoading = ref(false)
+const isSaving = ref(false)
+const isReviewing = ref(false)
+const showDetailModal = ref(false)
+const showEditModal = ref(false)
+const selectedReport = ref(null)
+const editingReport = ref(null)
+const itemsPerPage = 10
+
+const editForm = reactive({
   title: '',
-  performanceSummary: '',
-  achievement: '',
-  areaForImprove: '',
-  comment: '',
   rating: '',
   reportPeriodStart: '',
   reportPeriodEnd: '',
-});
+  performanceSummary: '',
+  achievement: '',
+  areaForImprove: '',
+  comment: ''
+})
 
-const fetchReports = async () => {
-  await reportStore.fetchAllReports({
-    _page: 1,
-    _per_page: 100,
-    sortBy: 'createdAt',
-    sortDir: 'DESC',
-  });
-};
+const loadReports = async () => {
+  const params = {
+    _page: currentPage.value,
+    _per_page: itemsPerPage,
+    sortBy: 'status',
+    sortDir: 'DESC'
+  }
 
-// ទាញទិន្នន័យពេល Component បើកដំបូង
-onMounted(async () => {
-  await fetchReports();
-});
+  if (statusFilter.value) {
+    params.status = statusFilter.value
+  }
 
-// ប្រើ Getter ពី Store ដើម្បីបង្ហាញលេខលើ Stat Cards
-const stats = computed(() => reportStore.reportStats);
+  await reportStore.fetchReports(params)
+}
 
-// Logic សម្រាប់ស្វែងរក
+onMounted(loadReports)
+
+watch(statusFilter, async () => {
+  currentPage.value = 1
+  await loadReports()
+})
+
+const stats = computed(() => reportStore.reportStats)
+
 const filteredReports = computed(() => {
-  const all = Array.isArray(reportStore.reports) ? reportStore.reports : [];
-  return all.filter(r => 
-    r.title?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    r.staff?.fullname?.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
-});
+  const query = searchQuery.value.trim().toLowerCase()
+  const reports = Array.isArray(reportStore.reports) ? reportStore.reports : []
 
-// កាត់ទិន្នន័យបង្ហាញតាមទំព័រ
+  if (!query) {
+    return reports
+  }
+
+  return reports.filter((report) => {
+    return [
+      report.title,
+      getStaffName(report),
+      getManagerName(report),
+      report.status
+    ].some((value) => String(value || '').toLowerCase().includes(query))
+  })
+})
+
+const totalPages = computed(() => {
+  if (searchQuery.value.trim()) {
+    return Math.ceil(filteredReports.value.length / itemsPerPage) || 1
+  }
+
+  const meta = reportStore.meta || {}
+  const total = Number(meta.totalPages ?? meta.pageCount ?? meta.lastPage)
+
+  if (Number.isFinite(total) && total > 0) {
+    return total
+  }
+
+  const totalItems = Number(meta.totalItems ?? meta.total ?? meta.itemCount)
+  const perPage = Number(meta.perPage ?? meta.per_page ?? meta.limit ?? itemsPerPage)
+
+  if (Number.isFinite(totalItems) && totalItems > 0 && Number.isFinite(perPage) && perPage > 0) {
+    return Math.ceil(totalItems / perPage)
+  }
+
+  return 1
+})
+
 const paginatedReports = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredReports.value.slice(start, start + itemsPerPage);
-});
+  if (!searchQuery.value.trim()) {
+    return filteredReports.value
+  }
 
-const totalPages = computed(() => Math.ceil(filteredReports.value.length / itemsPerPage) || 1);
+  const start = (currentPage.value - 1) * itemsPerPage
+  return filteredReports.value.slice(start, start + itemsPerPage)
+})
 
-const handlePageChange = (page) => {
-  currentPage.value = page;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+watch(searchQuery, () => {
+  currentPage.value = 1
+})
 
-const formatInputDate = (dateString) => {
-  if (!dateString) return '';
-  return String(dateString).split('T')[0];
-};
+watch(totalPages, (pages) => {
+  if (currentPage.value > pages) {
+    currentPage.value = pages
+    loadReports()
+  }
+})
 
-const openEditReportModal = (report) => {
-  Object.assign(editReport, {
-    id: report.id,
+const handlePageChange = async (page) => {
+  currentPage.value = Math.min(Math.max(page, 1), totalPages.value)
+
+  if (!searchQuery.value.trim()) {
+    await loadReports()
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const resetEditForm = () => {
+  Object.assign(editForm, {
+    title: '',
+    rating: '',
+    reportPeriodStart: '',
+    reportPeriodEnd: '',
+    performanceSummary: '',
+    achievement: '',
+    areaForImprove: '',
+    comment: ''
+  })
+}
+
+const openDetailModal = async (report) => {
+  selectedReport.value = report
+  showDetailModal.value = true
+  isDetailLoading.value = true
+
+  try {
+    selectedReport.value = await reportStore.fetchReportById(report.id)
+  } catch (error) {
+    Swal.fire({
+      title: 'Could not load report',
+      text: reportStore.error || 'Please try again.',
+      icon: 'error',
+      confirmButtonColor: '#4d7c6e'
+    })
+    showDetailModal.value = false
+  } finally {
+    isDetailLoading.value = false
+  }
+}
+
+const closeDetailModal = () => {
+  if (isDetailLoading.value) return
+  showDetailModal.value = false
+  selectedReport.value = null
+}
+
+const openEditModal = async (report) => {
+  editingReport.value = report
+  resetEditForm()
+  Object.assign(editForm, {
     title: report.title || '',
-    performanceSummary: report.performanceSummary || '',
-    achievement: report.achievement || '',
-    areaForImprove: report.areaForImprove || '',
-    comment: report.comment || '',
     rating: report.rating || '',
     reportPeriodStart: formatInputDate(report.reportPeriodStart),
     reportPeriodEnd: formatInputDate(report.reportPeriodEnd),
-  });
-  showEditReportModal.value = true;
-};
+    performanceSummary: report.performanceSummary || '',
+    achievement: report.achievement || '',
+    areaForImprove: report.areaForImprove || '',
+    comment: report.comment || ''
+  })
+  showEditModal.value = true
 
-const closeEditReportModal = () => {
-  if (isSubmitting.value) return;
-  showEditReportModal.value = false;
-};
+  try {
+    const details = await reportStore.fetchReportById(report.id)
+    editingReport.value = details
+    Object.assign(editForm, {
+      title: details.title || '',
+      rating: details.rating || '',
+      reportPeriodStart: formatInputDate(details.reportPeriodStart),
+      reportPeriodEnd: formatInputDate(details.reportPeriodEnd),
+      performanceSummary: details.performanceSummary || '',
+      achievement: details.achievement || '',
+      areaForImprove: details.areaForImprove || '',
+      comment: details.comment || ''
+    })
+  } catch (error) {
+    Swal.fire({
+      title: 'Could not load report details',
+      text: reportStore.error || 'You can still edit the values already loaded in the table.',
+      icon: 'warning',
+      confirmButtonColor: '#4d7c6e'
+    })
+  }
+}
+
+const closeEditModal = () => {
+  if (isSaving.value) return
+  showEditModal.value = false
+  editingReport.value = null
+  resetEditForm()
+}
 
 const handleUpdateReport = async () => {
-  if (!editReport.id) return;
+  if (!editingReport.value) return
 
-  if (!editReport.title.trim()) {
+  if (!editForm.title.trim()) {
     Swal.fire({
-      icon: 'warning',
       title: 'Title is required',
-      confirmButtonColor: '#2D6A4F',
-    });
-    return;
+      icon: 'warning',
+      confirmButtonColor: '#4d7c6e'
+    })
+    return
   }
 
-  isSubmitting.value = true;
+  isSaving.value = true
+
+  const payload = {
+    title: editForm.title.trim(),
+    performanceSummary: editForm.performanceSummary.trim(),
+    achievement: editForm.achievement.trim(),
+    areaForImprove: editForm.areaForImprove.trim(),
+    comment: editForm.comment.trim(),
+    reportPeriodStart: editForm.reportPeriodStart || undefined,
+    reportPeriodEnd: editForm.reportPeriodEnd || undefined
+  }
+
+  if (editForm.rating !== '') {
+    payload.rating = Number(editForm.rating)
+  }
+
   try {
-    const payload = {
-      title: editReport.title.trim(),
-      performanceSummary: editReport.performanceSummary,
-      achievement: editReport.achievement,
-      areaForImprove: editReport.areaForImprove,
-      comment: editReport.comment,
-    };
-
-    if (editReport.rating) {
-      payload.rating = Number(editReport.rating);
-    }
-
-    if (editReport.reportPeriodStart) {
-      payload.reportPeriodStart = editReport.reportPeriodStart;
-    }
-
-    if (editReport.reportPeriodEnd) {
-      payload.reportPeriodEnd = editReport.reportPeriodEnd;
-    }
-
-    await reportStore.updateReport(editReport.id, payload);
-    showEditReportModal.value = false;
-    await fetchReports();
+    await reportStore.updateReport(editingReport.value.id, payload)
+    await loadReports()
+    isSaving.value = false
+    closeEditModal()
     Swal.fire({
       title: 'Report updated',
       icon: 'success',
-      timer: 1500,
-      showConfirmButton: false,
-    });
+      timer: 1400,
+      showConfirmButton: false
+    })
   } catch (error) {
     Swal.fire({
       title: 'Update failed',
-      text: error.response?.data?.message || error.message || 'Could not update report.',
+      text: reportStore.error || 'Could not update this report.',
       icon: 'error',
-      confirmButtonColor: '#2D6A4F',
-    });
+      confirmButtonColor: '#4d7c6e'
+    })
   } finally {
-    isSubmitting.value = false;
+    isSaving.value = false
   }
-};
+}
 
-// មុខងារមើលលម្អិត
-const handleView = (report) => {
-  Swal.fire({
-    title: `<span class="text-success">${report.title}</span>`,
-    html: `
-      <div class="text-start border-top pt-3">
-        <p><strong>បុគ្គលិក:</strong> ${report.staff?.fullname}</p>
-        <p><strong>អ្នកគ្រប់គ្រង:</strong> ${report.manager?.fullname || 'មិនទាន់មាន'}</p>
-        <p><strong>ពិន្ទុវាយតម្លៃ:</strong> ${report.rating}/5</p>
-        <p><strong>មតិយោបល់:</strong> ${report.comment || 'គ្មាន'}</p>
-      </div>
-    `,
-    confirmButtonText: 'យល់ព្រម',
-    confirmButtonColor: '#2D6A4F'
-  });
-};
+const handleReviewReport = async (report) => {
+  if (!report || report.status !== 'SUBMITTED' || isReviewing.value) return
 
-// មុខងារលុប
-const handleDelete = async (id) => {
   const result = await Swal.fire({
-    title: 'តើអ្នកប្រាកដទេ?',
-    text: "របាយការណ៍នេះនឹងត្រូវលុបចេញពីប្រព័ន្ធ!",
+    title: 'Mark as reviewed?',
+    text: 'Admin will mark this report as checked.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#4d7c6e',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'បានពិនិត្យ',
+    cancelButtonText: 'Cancel',
+    reverseButtons: true
+  })
+
+  if (!result.isConfirmed) return
+
+  isReviewing.value = true
+
+  try {
+    const reviewedReport = await reportStore.reviewReport(report.id)
+
+    if (String(selectedReport.value?.id) === String(report.id)) {
+      selectedReport.value = reviewedReport && typeof reviewedReport === 'object'
+        ? reviewedReport
+        : {
+            ...selectedReport.value,
+            status: 'REVIEWED',
+            reviewedAt: new Date().toISOString()
+          }
+    }
+
+    await loadReports()
+    Swal.fire({
+      title: 'បានពិនិត្យរួច',
+      icon: 'success',
+      timer: 1400,
+      showConfirmButton: false
+    })
+  } catch (error) {
+    Swal.fire({
+      title: 'Review failed',
+      text: reportStore.error || 'Could not review this report.',
+      icon: 'error',
+      confirmButtonColor: '#4d7c6e'
+    })
+  } finally {
+    isReviewing.value = false
+  }
+}
+
+const handleDeleteReport = async (report) => {
+  const result = await Swal.fire({
+    title: 'Delete this report?',
+    text: 'This report will be removed from the system.',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#2D6A4F',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'បាទ លុបវា!',
-    cancelButtonText: 'បោះបង់',
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
     reverseButtons: true
-  });
+  })
 
-  if (result.isConfirmed) {
-    const success = await reportStore.deleteReport(id);
-    if (success) {
-      Swal.fire({
-        title: 'លុបជោគជ័យ!',
-        icon: 'success',
-        timer: 1500,
-        showConfirmButton: false
-      });
+  if (!result.isConfirmed) return
+
+  try {
+    await reportStore.deleteReport(report.id)
+
+    if (reportStore.reports.length === 0 && currentPage.value > 1) {
+      currentPage.value -= 1
     }
+
+    await loadReports()
+    Swal.fire({
+      title: 'Report deleted',
+      icon: 'success',
+      timer: 1400,
+      showConfirmButton: false
+    })
+  } catch (error) {
+    Swal.fire({
+      title: 'Delete failed',
+      text: reportStore.error || 'Could not delete this report.',
+      icon: 'error',
+      confirmButtonColor: '#4d7c6e'
+    })
   }
-};
+}
+
+const retryLoad = () => {
+  loadReports()
+}
+
+function getStaffName(report) {
+  return report.staff?.fullname
+    || report.staff?.name
+    || report.staffName
+    || report.staff?.email
+    || 'Unassigned'
+}
+
+function getManagerName(report) {
+  return report.manager?.fullname
+    || report.manager?.name
+    || report.managerName
+    || report.createdBy?.fullname
+    || report.author?.fullname
+    || 'Unassigned'
+}
+
+function formatInputDate(value) {
+  if (!value) return ''
+  return String(value).split('T')[0]
+}
+
+function formatDate(value) {
+  if (!value) return '-'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  return date.toLocaleDateString('en-US')
+}
+
+function getPeriodLabel(report) {
+  const start = parseDate(report.reportPeriodStart)
+  const end = parseDate(report.reportPeriodEnd)
+
+  if (!start && !end) return '-'
+  if (start && !end) return formatDate(report.reportPeriodStart)
+  if (!start && end) return formatDate(report.reportPeriodEnd)
+
+  const quarter = getQuarterLabel(start, end)
+  if (quarter) return quarter
+
+  const sameMonth = start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth()
+  if (sameMonth) {
+    return start.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+  }
+
+  return `${formatDate(report.reportPeriodStart)} - ${formatDate(report.reportPeriodEnd)}`
+}
+
+function parseDate(value) {
+  if (!value) return null
+
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function getQuarterLabel(start, end) {
+  if (start.getFullYear() !== end.getFullYear()) return ''
+
+  const quarterRanges = [
+    [0, 2, 'Q1'],
+    [3, 5, 'Q2'],
+    [6, 8, 'Q3'],
+    [9, 11, 'Q4']
+  ]
+
+  const match = quarterRanges.find(([startMonth, endMonth]) => (
+    start.getMonth() === startMonth && end.getMonth() === endMonth
+  ))
+
+  return match ? `${start.getFullYear()} ${match[2]}` : ''
+}
+
+function getStatusLabel(status) {
+  switch (status) {
+    case 'REVIEWED':
+      return 'Reviewed'
+    case 'SUBMITTED':
+      return 'Submitted'
+    case 'DRAFT':
+      return 'Draft'
+    default:
+      return status || 'Unknown'
+  }
+}
+
+function getStatusClass(status) {
+  switch (status) {
+    case 'REVIEWED':
+      return 'status-reviewed'
+    case 'SUBMITTED':
+      return 'status-submitted'
+    case 'DRAFT':
+      return 'status-draft'
+    default:
+      return 'status-default'
+  }
+}
 </script>
 
 <template>
-  <div class="reports-container p-4">
-    <!-- ចំណងជើងផ្នែកខាងលើ -->
-    <div class="mb-4">
-      <h2 class="fw-bold text-dark">របាយការណ៍ការងារ</h2>
-      <p class="text-muted">ពិនិត្យ និងគ្រប់គ្រងរាល់របាយការណ៍ការងារទាំងអស់ក្នុងប្រព័ន្ធ</p>
-    </div>
-
-    <!-- ប្រអប់ស្វែងរក -->
-    <div class="row mb-4">
-      <div class="col-12 col-md-8">
-        <div class="input-group bg-white shadow-sm rounded-3">
-          <span class="input-group-text bg-white border-0 ps-3">
-            <i class="bi bi-search text-muted"></i>
-          </span>
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            class="form-control border-0 py-2" 
-            placeholder="ស្វែងរករបាយការណ៍តាមចំណងជើង ឬឈ្មោះបុគ្គលិក..."
-            @input="currentPage = 1"
-          >
-        </div>
+  <div class="reports-page">
+    <section class="reports-heading">
+      <div>
+        <h2>Performance Reports</h2>
+        <p>Review and manage all performance reports</p>
       </div>
-    </div>
+    </section>
 
-    <!-- ផ្នែក Stat Cards (ដូចក្នុង image_551820.png) -->
-    <div class="row g-4 mb-4">
-      <div class="col-md-4">
-        <div class="stat-card card-pending shadow-sm p-4">
-          <div class="stat-label">រង់ចាំការពិនិត្យ </div>
-          <div class="stat-value text-warning">{{ stats.pending }}</div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="stat-card card-reviewed shadow-sm p-4">
-          <div class="stat-label">បានពិនិត្យរួចរាល់</div>
-          <div class="stat-value text-success">{{ stats.reviewed }}</div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="stat-card card-total shadow-sm p-4">
-          <div class="stat-label">របាយការណ៍សរុប</div>
-          <div class="stat-value text-teal">{{ stats.total }}</div>
-        </div>
-      </div>
-    </div>
+    <section class="report-toolbar" aria-label="Report filters">
+      <label class="search-control">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input
+          v-model="searchQuery"
+          type="search"
+          placeholder="Search reports by title or staff name..."
+        >
+      </label>
 
-    <BaseModal
-      :show="showEditReportModal"
-      title="Edit Report"
-      size="lg"
-      @close="closeEditReportModal"
-    >
-      <form @submit.prevent="handleUpdateReport">
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Title</label>
-          <input
-            v-model="editReport.title"
-            type="text"
-            class="form-control"
-            :disabled="isSubmitting"
-            required
-          >
-        </div>
+      <select v-model="statusFilter" class="status-filter" aria-label="Filter reports by status">
+        <option value="">All statuses</option>
+        <option value="SUBMITTED">Submitted</option>
+        <option value="REVIEWED">Reviewed</option>
+        <option value="DRAFT">Draft</option>
+      </select>
+    </section>
 
-        <div class="row g-3 mb-3">
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Rating</label>
-            <select v-model="editReport.rating" class="form-select" :disabled="isSubmitting">
-              <option value="">Select rating</option>
-              <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Start Date</label>
-            <input
-              v-model="editReport.reportPeriodStart"
-              type="date"
-              class="form-control"
-              :disabled="isSubmitting"
-            >
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">End Date</label>
-            <input
-              v-model="editReport.reportPeriodEnd"
-              type="date"
-              class="form-control"
-              :disabled="isSubmitting"
-            >
-          </div>
-        </div>
+    <section class="stats-grid" aria-label="Report summary">
+      <article class="stat-card">
+        <span>Pending Review</span>
+        <strong class="text-warning">{{ stats.pending }}</strong>
+      </article>
+      <article class="stat-card">
+        <span>Reviewed</span>
+        <strong class="text-success">{{ stats.reviewed }}</strong>
+      </article>
+      <article class="stat-card">
+        <span>Total Reports</span>
+        <strong class="text-total">{{ stats.total }}</strong>
+      </article>
+    </section>
 
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Performance Summary</label>
-          <textarea v-model="editReport.performanceSummary" class="form-control" rows="2" :disabled="isSubmitting"></textarea>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Achievement</label>
-          <textarea v-model="editReport.achievement" class="form-control" rows="2" :disabled="isSubmitting"></textarea>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Area For Improve</label>
-          <textarea v-model="editReport.areaForImprove" class="form-control" rows="2" :disabled="isSubmitting"></textarea>
-        </div>
-        <div class="mb-4">
-          <label class="form-label fw-semibold">Comment</label>
-          <textarea v-model="editReport.comment" class="form-control" rows="2" :disabled="isSubmitting"></textarea>
-        </div>
-
-        <div class="d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light px-4" :disabled="isSubmitting" @click="closeEditReportModal">
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-save-report px-4" :disabled="isSubmitting">
-            <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-            Save
-          </button>
-        </div>
-      </form>
-    </BaseModal>
-
-    <!-- តារាងរបាយការណ៍ -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <section class="reports-table-shell">
       <div class="table-responsive">
-        <table class="table align-middle mb-0">
-          <thead class="table-light-custom text-uppercase small fw-bold">
+        <table class="reports-table">
+          <thead>
             <tr>
-              <th class="ps-4">ល.រ </th>
-              <th>ចំណងជើង </th>
-              <th>បុគ្គលិក </th>
-              <th>អ្នកគ្រប់គ្រង </th>
-              <th>រយៈពេល</th>
-              <th>ស្ថានភាព </th>
-              <th>ថ្ងៃបញ្ជូន </th>
-              <th class="text-center pe-4">សកម្មភាព </th>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Staff Member</th>
+              <th>Manager</th>
+              <th>Period</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th class="text-end">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="reportStore.isLoading">
-              <td colspan="8" class="text-center py-5">
-                <div class="spinner-border text-success" role="status"></div>
-                <p class="mt-2 text-muted">កំពុងទាញទិន្នន័យ...</p>
+              <td colspan="8" class="table-state">
+                <span class="spinner-border spinner-border-sm text-success me-2" role="status"></span>
+                Loading reports...
               </td>
             </tr>
+
+            <tr v-else-if="reportStore.error">
+              <td colspan="8" class="table-state text-danger">
+                {{ reportStore.error }}
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" @click="retryLoad">
+                  Retry
+                </button>
+              </td>
+            </tr>
+
             <template v-else>
-              <tr v-for="r in paginatedReports" :key="r.id" class="border-bottom">
-                <td class="ps-4 text-muted">{{ r.id }}</td>
-                <td class="fw-bold text-dark">{{ r.title }}</td>
-                <td>{{ r.staff?.fullname }}</td>
-                <td>{{ r.manager?.fullname || '—' }}</td>
-                <td>{{ r.reportPeriodStart ? new Date(r.reportPeriodStart).getFullYear() : '—' }}</td>
+              <tr v-for="report in paginatedReports" :key="report.id">
+                <td class="text-muted">{{ report.id }}</td>
+                <td class="report-title">{{ report.title || 'Untitled report' }}</td>
+                <td>{{ getStaffName(report) }}</td>
+                <td>{{ getManagerName(report) }}</td>
+                <td>{{ getPeriodLabel(report) }}</td>
                 <td>
-                  <span :class="['status-badge', r.status === 'REVIEWED' ? 'bg-success-light' : 'bg-pending-light']">
-                    {{ r.status === 'REVIEWED' ? 'បានពិនិត្យ' : 'រង់ចាំពិនិត្យ' }}
+                  <span :class="['status-pill', getStatusClass(report.status)]">
+                    {{ getStatusLabel(report.status) }}
                   </span>
                 </td>
-                <td class="text-muted small">{{ new Date(r.createdAt).toLocaleDateString('km-KH') }}</td>
-                <td class="text-center pe-4">
-                  <div class="d-flex justify-content-center gap-2">
-                    <button @click="handleView(r)" class="btn-icon view-btn" title="មើលលម្អិត">
-                      <i class="bi bi-eye"></i>
+                <td>{{ formatDate(report.submittedAt || report.createdAt) }}</td>
+                <td>
+                  <div class="report-actions">
+                    <button
+                      type="button"
+                      class="icon-button"
+                      title="View report"
+                      aria-label="View report"
+                      @click="openDetailModal(report)"
+                    >
+                      <i class="bi bi-eye" aria-hidden="true"></i>
                     </button>
-                    <button @click="openEditReportModal(r)" class="btn-icon edit-btn" title="Edit">
-                      <i class="bi bi-pencil-square"></i>
+                    <button
+                      type="button"
+                      class="icon-button"
+                      title="Edit report"
+                      aria-label="Edit report"
+                      @click="openEditModal(report)"
+                    >
+                      <i class="bi bi-pencil-square" aria-hidden="true"></i>
                     </button>
-                    <button @click="handleDelete(r.id)" class="btn-icon delete-btn" title="លុប">
-                      <i class="bi bi-trash"></i>
+                    <button
+                      v-if="report.status === 'SUBMITTED'"
+                      type="button"
+                      class="icon-button review-action"
+                      title="Mark reviewed"
+                      aria-label="Mark report reviewed"
+                      @click="handleReviewReport(report)"
+                    >
+                      <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-button delete-action"
+                      title="Delete report"
+                      aria-label="Delete report"
+                      @click="handleDeleteReport(report)"
+                    >
+                      <i class="bi bi-trash3" aria-hidden="true"></i>
                     </button>
                   </div>
                 </td>
               </tr>
-              <tr v-if="filteredReports.length === 0">
-                <td colspan="8" class="text-center py-5 text-muted">មិនមានទិន្នន័យរបាយការណ៍បង្ហាញទេ</td>
+
+              <tr v-if="paginatedReports.length === 0">
+                <td colspan="8" class="table-state">
+                  No performance reports found.
+                </td>
               </tr>
             </template>
           </tbody>
         </table>
       </div>
+    </section>
+
+    <div v-if="totalPages > 1" class="pagination-row">
+      <BasePagination
+        :total-pages="totalPages"
+        :current-page="currentPage"
+        @change-page="handlePageChange"
+      />
     </div>
 
-    <!-- ការបែងចែកទំព័រ -->
-    <div v-if="totalPages > 1" class="d-flex justify-content-center mt-4">
-      <BasePagination 
-        :total-pages="totalPages" 
-        :current-page="currentPage" 
-        @change-page="handlePageChange" 
-      />
+    <div v-if="showDetailModal" class="modal-backdrop-custom" @click.self="closeDetailModal">
+      <div class="report-modal detail-modal">
+        <header class="modal-header-panel">
+          <div>
+            <p class="modal-kicker">Report details</p>
+            <h3>{{ selectedReport?.title || 'Performance Report' }}</h3>
+          </div>
+          <button type="button" class="modal-close" aria-label="Close details" @click="closeDetailModal">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+          </button>
+        </header>
+
+        <div class="modal-body-panel">
+          <div v-if="isDetailLoading" class="modal-loading">
+            <span class="spinner-border text-success" role="status"></span>
+          </div>
+
+          <template v-else-if="selectedReport">
+            <div class="detail-summary">
+              <div>
+                <span>Staff Member</span>
+                <strong>{{ getStaffName(selectedReport) }}</strong>
+              </div>
+              <div>
+                <span>Manager</span>
+                <strong>{{ getManagerName(selectedReport) }}</strong>
+              </div>
+              <div>
+                <span>Period</span>
+                <strong>{{ getPeriodLabel(selectedReport) }}</strong>
+              </div>
+              <div>
+                <span>Status</span>
+                <strong>
+                  <span :class="['status-pill', getStatusClass(selectedReport.status)]">
+                    {{ getStatusLabel(selectedReport.status) }}
+                  </span>
+                </strong>
+              </div>
+            </div>
+
+            <div class="rating-row">
+              <span>Rating</span>
+              <div>
+                <i
+                  v-for="star in 5"
+                  :key="star"
+                  :class="[
+                    'bi',
+                    star <= Number(selectedReport.rating || 0) ? 'bi-star-fill' : 'bi-star'
+                  ]"
+                  aria-hidden="true"
+                ></i>
+                <strong>{{ selectedReport.rating || '-' }}/5</strong>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <h4>Performance Summary</h4>
+              <p>{{ selectedReport.performanceSummary || 'No summary provided.' }}</p>
+            </div>
+            <div class="detail-section">
+              <h4>Achievements</h4>
+              <p>{{ selectedReport.achievement || 'No achievements provided.' }}</p>
+            </div>
+            <div class="detail-section">
+              <h4>Areas for Improvement</h4>
+              <p>{{ selectedReport.areaForImprove || 'No improvement areas provided.' }}</p>
+            </div>
+            <div class="detail-section">
+              <h4>Comment</h4>
+              <p>{{ selectedReport.comment || 'No comment provided.' }}</p>
+            </div>
+
+            <div class="detail-review-panel">
+              <div>
+                <span class="detail-review-label">Admin review</span>
+                <strong>
+                  {{ selectedReport.status === 'REVIEWED' ? 'បានពិនិត្យរួច' : 'រង់ចាំពិនិត្យ' }}
+                </strong>
+                <small v-if="selectedReport.reviewedAt">
+                  {{ formatDate(selectedReport.reviewedAt) }}
+                </small>
+              </div>
+              <button
+                v-if="selectedReport.status === 'SUBMITTED'"
+                type="button"
+                class="btn btn-review-detail"
+                :disabled="isReviewing"
+                @click="handleReviewReport(selectedReport)"
+              >
+                <span v-if="isReviewing" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <i v-else class="bi bi-check2-circle me-2" aria-hidden="true"></i>
+                បានពិនិត្យ
+              </button>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showEditModal" class="modal-backdrop-custom" @click.self="closeEditModal">
+      <div class="report-modal edit-modal">
+        <header class="modal-header-panel">
+          <div>
+            <p class="modal-kicker">Edit report</p>
+            <h3>{{ editingReport?.title || 'Performance Report' }}</h3>
+          </div>
+          <button type="button" class="modal-close" aria-label="Close edit form" @click="closeEditModal">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+          </button>
+        </header>
+
+        <form class="modal-body-panel" @submit.prevent="handleUpdateReport">
+          <div class="form-grid">
+            <label class="form-field span-2">
+              <span>Title</span>
+              <input v-model="editForm.title" type="text" required :disabled="isSaving">
+            </label>
+
+            <label class="form-field">
+              <span>Rating</span>
+              <select v-model="editForm.rating" :disabled="isSaving">
+                <option value="">No rating</option>
+                <option v-for="rating in 5" :key="rating" :value="rating">{{ rating }}</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span>Period Start</span>
+              <input v-model="editForm.reportPeriodStart" type="date" :disabled="isSaving">
+            </label>
+
+            <label class="form-field">
+              <span>Period End</span>
+              <input v-model="editForm.reportPeriodEnd" type="date" :disabled="isSaving">
+            </label>
+
+            <label class="form-field span-2">
+              <span>Performance Summary</span>
+              <textarea v-model="editForm.performanceSummary" rows="3" :disabled="isSaving"></textarea>
+            </label>
+
+            <label class="form-field span-2">
+              <span>Achievements</span>
+              <textarea v-model="editForm.achievement" rows="3" :disabled="isSaving"></textarea>
+            </label>
+
+            <label class="form-field span-2">
+              <span>Areas for Improvement</span>
+              <textarea v-model="editForm.areaForImprove" rows="3" :disabled="isSaving"></textarea>
+            </label>
+
+            <label class="form-field span-2">
+              <span>Comment</span>
+              <textarea v-model="editForm.comment" rows="3" :disabled="isSaving"></textarea>
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-light" :disabled="isSaving" @click="closeEditModal">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-save" :disabled="isSaving">
+              <span v-if="isSaving" class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.reports-container { background-color: #f8fbfc; min-height: 100vh; }
+.reports-page {
+  min-height: calc(100vh - 112px);
+  color: #1f2937;
+}
 
-/* Stat Cards Styling */
-.stat-card { background: white; border-radius: 15px; border-left: 6px solid #2D6A4F; transition: transform 0.2s; }
-.stat-card:hover { transform: translateY(-5px); }
-.stat-label { font-size: 0.85rem; font-weight: 600; color: #6c757d; }
-.stat-value { font-size: 2.5rem; font-weight: 800; margin-top: 5px; }
+.reports-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
 
-.text-teal { color: #20c997; }
+.reports-heading h2 {
+  margin: 0 0 4px;
+  color: #1f2937;
+  font-size: 1.55rem;
+  font-weight: 800;
+}
 
-/* Table Styling */
-.table-light-custom { background-color: #f1f4f6; color: #495057; }
-.table-light-custom th { padding: 15px 10px; border: none; }
+.reports-heading p {
+  margin: 0;
+  color: #718096;
+  font-size: 0.96rem;
+}
 
-.status-badge {
-  padding: 6px 12px;
-  border-radius: 50px;
-  font-size: 0.7rem;
+.report-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.search-control,
+.status-filter {
+  min-height: 44px;
+  border: 1px solid #dfe7ec;
+  border-radius: 7px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.search-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  color: #8a98aa;
+}
+
+.search-control input,
+.status-filter {
+  width: 100%;
+  color: #1f2937;
+  border: 0;
+  outline: 0;
+}
+
+.search-control input::placeholder {
+  color: #9aa5b1;
+}
+
+.status-filter {
+  padding: 0 12px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.stat-card {
+  min-height: 82px;
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  padding: 16px;
+  border: 1px solid #e1e8ee;
+  border-radius: 7px;
+  background: #ffffff;
+}
+
+.stat-card span {
+  color: #7a889b;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.stat-card strong {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.text-total {
+  color: #7fb08a;
+}
+
+.reports-table-shell {
+  overflow: hidden;
+  border: 1px solid #e1e8ee;
+  border-radius: 7px;
+  background: #ffffff;
+}
+
+.reports-table {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: collapse;
+}
+
+.reports-table thead {
+  background: #eef3f7;
+}
+
+.reports-table th {
+  padding: 15px 22px;
+  color: #6f7f95;
+  font-size: 0.73rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.reports-table td {
+  padding: 17px 22px;
+  color: #374151;
+  border-top: 1px solid #edf1f4;
+  font-size: 0.92rem;
+  vertical-align: middle;
+}
+
+.report-title {
+  max-width: 210px;
+  color: #293241;
+  font-weight: 700;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-reviewed {
+  color: #25c46b;
+  background: #e1f8eb;
+  border: 1px solid #c7efd8;
+}
+
+.status-submitted {
+  color: #7ca88a;
+  background: #f1f7f3;
+  border: 1px solid #e0ebe4;
+}
+
+.status-draft {
+  color: #d98a09;
+  background: #fff7e7;
+  border: 1px solid #fae5bd;
+}
+
+.status-default {
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.icon-button {
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: #4d7c6e;
+  background: transparent;
+  line-height: 1;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.icon-button .bi {
+  display: block;
+  line-height: 1;
+}
+
+.icon-button:hover,
+.icon-button:focus {
+  color: #2d6a4f;
+  background: #eef7f2;
+}
+
+.review-action {
+  color: #22c55e;
+}
+
+.delete-action {
+  color: #dc3545;
+}
+
+.delete-action:hover,
+.delete-action:focus {
+  color: #b02a37;
+  background: #fff1f2;
+}
+
+.table-state {
+  height: 120px;
+  color: #7a889b;
+  text-align: center;
+}
+
+.pagination-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px 24px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.report-modal {
+  width: min(760px, 100%);
+  overflow: hidden;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+}
+
+.detail-modal {
+  width: min(720px, 100%);
+}
+
+.modal-header-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px;
+  color: #ffffff;
+  background: #4d7c6e;
+}
+
+.modal-kicker {
+  margin: 0 0 4px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
 }
-.bg-success-light { background-color: #d1f2eb; color: #16a085; }
-.bg-pending-light { background-color: #fef5e7; color: #f39c12; }
 
-/* Action Buttons */
-.btn-icon { background: none; border: none; font-size: 1.2rem; transition: 0.2s; }
-.view-btn { color: #2D6A4F; }
-.edit-btn { color: #0d6efd; }
-.delete-btn { color: #e74c3c; }
-.btn-icon:hover { transform: scale(1.2); }
-.btn-save-report { background: #2D6A4F; color: #fff; border: none; }
-.btn-save-report:hover { background: #24543f; color: #fff; }
+.modal-header-panel h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.modal-close {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.modal-close:hover,
+.modal-close:focus {
+  background: rgba(255, 255, 255, 0.27);
+}
+
+.modal-body-panel {
+  padding: 24px;
+}
+
+.modal-loading {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+}
+
+.detail-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.detail-summary > div,
+.rating-row {
+  padding: 14px;
+  border: 1px solid #e1e8ee;
+  border-radius: 7px;
+  background: #f9fbfc;
+}
+
+.detail-summary span,
+.rating-row > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #7a889b;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.detail-summary strong {
+  color: #1f2937;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.rating-row > div {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #f5a524;
+}
+
+.rating-row strong {
+  margin-left: 8px;
+  color: #1f2937;
+}
+
+.detail-section {
+  margin-top: 18px;
+}
+
+.detail-section h4 {
+  margin: 0 0 6px;
+  color: #4b5563;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.detail-section p {
+  margin: 0;
+  color: #1f2937;
+  line-height: 1.55;
+}
+
+.detail-review-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 14px;
+  border: 1px solid #d8e8df;
+  border-radius: 7px;
+  background: #f4faf7;
+}
+
+.detail-review-panel > div {
+  display: grid;
+  gap: 3px;
+}
+
+.detail-review-label {
+  color: #6b7f76;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.detail-review-panel strong {
+  color: #2d6a4f;
+  font-size: 0.98rem;
+}
+
+.detail-review-panel small {
+  color: #718096;
+}
+
+.btn-review-detail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 16px;
+  color: #ffffff;
+  background: #4d7c6e;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.btn-review-detail:hover,
+.btn-review-detail:focus {
+  color: #ffffff;
+  background: #3f665b;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.form-field {
+  display: grid;
+  gap: 7px;
+}
+
+.form-field.span-2 {
+  grid-column: 1 / -1;
+}
+
+.form-field span {
+  color: #1f2937;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  border: 1px solid #cfdbe3;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: #1f2937;
+  outline: 0;
+}
+
+.form-field textarea {
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: #4d7c6e;
+  box-shadow: 0 0 0 0.18rem rgba(77, 124, 110, 0.16);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.btn-save {
+  color: #ffffff;
+  background: #4d7c6e;
+  border: 0;
+  font-weight: 700;
+}
+
+.btn-save:hover,
+.btn-save:focus {
+  color: #ffffff;
+  background: #3f665b;
+}
+
+@media (max-width: 767.98px) {
+  .report-toolbar,
+  .stats-grid,
+  .detail-summary,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reports-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .modal-backdrop-custom {
+    align-items: center;
+    padding-top: 20px;
+  }
+
+  .rating-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
 </style>

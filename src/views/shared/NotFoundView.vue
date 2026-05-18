@@ -18,7 +18,7 @@
       </p>
 
       <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
-        <RouterLink :to="{ name: 'staffDashboard' }" class="btn btn-primary px-4">
+        <RouterLink :to="dashboardRoute" class="btn btn-primary px-4">
           <i class="bi bi-house-door me-2"></i>Go to dashboard
         </RouterLink>
         <button class="btn btn-outline-secondary px-4" @click="$router.back()">
@@ -32,8 +32,23 @@
 
 <script setup>
 import { RouterLink, useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/useAuth'
+import { getRoleKey } from '@/utils/roles'
 
 const $router = useRouter()
+const authStore = useAuthStore()
+
+const dashboardRouteByRole = {
+  admin: 'adminDashboard',
+  manager: 'managerDashboard',
+  staff: 'staffDashboard',
+}
+
+const dashboardRoute = computed(() => {
+  const routeName = dashboardRouteByRole[getRoleKey(authStore.profile)]
+  return routeName ? { name: routeName } : { name: 'Login' }
+})
 </script>
 
 <style scoped>

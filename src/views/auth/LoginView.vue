@@ -99,6 +99,17 @@ const form = reactive({
 });
 const loading = ref(false);
 
+const dashboardRouteByRole = {
+  admin: 'adminDashboard',
+  manager: 'managerDashboard',
+  staff: 'staffDashboard'
+};
+
+function getDashboardRoute(profile) {
+  const routeName = dashboardRouteByRole[getRoleKey(profile)];
+  return routeName ? { name: routeName } : { name: 'Login' };
+}
+
 // Validation Functions
 function validationEmail() {
   return validatField('email', form.email, 'សូមបញ្ចូលអ៊ីមែលរបស់អ្នក');
@@ -140,22 +151,7 @@ async function handleLogin() {
         toastClassName: "custom-toast-success" 
       });
 
-      // Redirect logic based on Role ID
-      const roleKey = getRoleKey(authStore.profile);
-
-      if (roleKey === 'admin') {
-        // Role 1: Admin
-        router.replace({ name: 'adminDashboard' }); 
-      } else if (roleKey === 'manager') {
-        // Role 2: Manager
-        router.replace({ name: 'managerDashboard' });
-      } else if (roleKey === 'staff') {
-        // Role 3: Staff
-        router.replace({ name: 'staffDashboard' });
-      } else {
-        // Fallback for any unknown role
-        router.replace({ name: 'notFound' }); 
-      }
+      router.replace(getDashboardRoute(authStore.profile));
     }
   } catch (error) {
     toast.error(authStore.message_error || "Login failed!");

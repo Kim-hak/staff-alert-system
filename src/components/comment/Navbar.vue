@@ -76,25 +76,24 @@ const roleLabel = computed(() => {
 
 const profileRoute = computed(() => {
   switch (getRoleKey(authStore.profile)) {
-    case 'admin': return '/admin/profile'
-    case 'manager': return '/manager/profile'
-    case 'staff': return '/staff/profile'
-    default: return '/'
+    case 'admin': return { name: 'adminProfile' }
+    case 'manager': return { name: 'managerProfile' }
+    case 'staff': return { name: 'staffProfile' }
+    default: return { name: 'Login' }
   }
 })
 
 const doLogout = () => {
   Swal.fire({
     title: 'តើអ្នកប្រាកដទេ?',
-    text: "អ្នកនឹងត្រូវចាកចេញពីប្រព័ន្ធ!",
+    text: 'អ្នកនឹងត្រូវចាកចេញពីប្រព័ន្ធ!',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#d33', 
+    confirmButtonColor: '#d33',
     cancelButtonColor: '#2D6A4F',
     confirmButtonText: 'បាទ ចាកចេញ!',
     cancelButtonText: 'បោះបង់',
     reverseButtons: true,
-    // ថែមស្ទីលឱ្យត្រូវជាមួយ Dashboard របស់អ្នក
     background: '#ffffff',
     color: '#1b4332'
   }).then(async (result) => {
@@ -114,6 +113,7 @@ const doLogout = () => {
     }
   })
 }
+
 // Close dropdown on outside click
 function handleOutside(e) {
   if (dropRef.value && !dropRef.value.contains(e.target)) dropOpen.value = false

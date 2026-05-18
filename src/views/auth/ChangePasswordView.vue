@@ -3,7 +3,7 @@
     <div class="w-full max-w-md">
       <div class="bg-white rounded-lg shadow-xl p-8 border border-gray-200">
         <button
-          @click="router.push('/dashboard')"
+          @click="goToDashboard"
           class="flex items-center gap-2 text-sm text-[#84A98C] hover:underline mb-6"
         >
           <ArrowLeftIcon class="w-4 h-4" />
@@ -97,6 +97,7 @@ import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/useAuth";
 import { useToastStore } from "@/stores/useToast";
+import { getRoleKey } from "@/utils/roles";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -107,6 +108,21 @@ const newPassword = ref("");
 const confirmPassword = ref("");
 const passwordErrors = reactive({ currentPassword: "", newPassword: "", confirmPassword: "" });
 const loading = ref(false);
+
+const dashboardRouteByRole = {
+  admin: "adminDashboard",
+  manager: "managerDashboard",
+  staff: "staffDashboard",
+};
+
+const getDashboardRoute = () => {
+  const routeName = dashboardRouteByRole[getRoleKey(authStore.profile)];
+  return routeName ? { name: routeName } : { name: "Login" };
+};
+
+const goToDashboard = () => {
+  router.push(getDashboardRoute());
+};
 
 const handleChangePassword = async () => {
   let hasError = false;
@@ -137,7 +153,7 @@ const handleChangePassword = async () => {
       password_confirmation: confirmPassword.value,
     });
     toastStore.success("ពាក្យសម្ងាត់បានផ្លាស់ប្តូរដោយជោគជ័យ។");
-    router.push("/dashboard");
+    goToDashboard();
   } catch (error) {
     const message =
       error?.response?.data?.message ||
