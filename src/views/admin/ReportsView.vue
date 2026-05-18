@@ -11,6 +11,7 @@ const statusFilter = ref('')
 const currentPage = ref(1)
 const isDetailLoading = ref(false)
 const isSaving = ref(false)
+const isReviewing = ref(false)
 const showDetailModal = ref(false)
 const showEditModal = ref(false)
 const selectedReport = ref(null)
@@ -258,25 +259,40 @@ const handleUpdateReport = async () => {
 }
 
 const handleReviewReport = async (report) => {
+  if (!report || report.status !== 'SUBMITTED' || isReviewing.value) return
+
   const result = await Swal.fire({
     title: 'Mark as reviewed?',
-    text: 'This will move the report from submitted to reviewed.',
+    text: 'Admin will mark this report as checked.',
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#4d7c6e',
     cancelButtonColor: '#6b7280',
-    confirmButtonText: 'Review report',
+    confirmButtonText: 'បានពិនិត្យ',
     cancelButtonText: 'Cancel',
     reverseButtons: true
   })
 
   if (!result.isConfirmed) return
 
+  isReviewing.value = true
+
   try {
-    await reportStore.reviewReport(report.id)
+    const reviewedReport = await reportStore.reviewReport(report.id)
+
+    if (String(selectedReport.value?.id) === String(report.id)) {
+      selectedReport.value = reviewedReport && typeof reviewedReport === 'object'
+        ? reviewedReport
+        : {
+            ...selectedReport.value,
+            status: 'REVIEWED',
+            reviewedAt: new Date().toISOString()
+          }
+    }
+
     await loadReports()
     Swal.fire({
-      title: 'Report reviewed',
+      title: 'បានពិនិត្យរួច',
       icon: 'success',
       timer: 1400,
       showConfirmButton: false
@@ -288,6 +304,8 @@ const handleReviewReport = async (report) => {
       icon: 'error',
       confirmButtonColor: '#4d7c6e'
     })
+  } finally {
+    isReviewing.value = false
   }
 }
 
@@ -657,6 +675,29 @@ function getStatusClass(status) {
               <h4>Comment</h4>
               <p>{{ selectedReport.comment || 'No comment provided.' }}</p>
             </div>
+
+            <div class="detail-review-panel">
+              <div>
+                <span class="detail-review-label">Admin review</span>
+                <strong>
+                  {{ selectedReport.status === 'REVIEWED' ? 'បានពិនិត្យរួច' : 'រង់ចាំពិនិត្យ' }}
+                </strong>
+                <small v-if="selectedReport.reviewedAt">
+                  {{ formatDate(selectedReport.reviewedAt) }}
+                </small>
+              </div>
+              <button
+                v-if="selectedReport.status === 'SUBMITTED'"
+                type="button"
+                class="btn btn-review-detail"
+                :disabled="isReviewing"
+                @click="handleReviewReport(selectedReport)"
+              >
+                <span v-if="isReviewing" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <i v-else class="bi bi-check2-circle me-2" aria-hidden="true"></i>
+                បានពិនិត្យ
+              </button>
+            </div>
           </template>
         </div>
       </div>
@@ -922,11 +963,18 @@ function getStatusClass(status) {
   height: 32px;
   display: inline-grid;
   place-items: center;
+  padding: 0;
   border: 0;
   border-radius: 6px;
   color: #4d7c6e;
   background: transparent;
+  line-height: 1;
   transition: background-color 0.2s, color 0.2s;
+}
+
+.icon-button .bi {
+  display: block;
+  line-height: 1;
 }
 
 .icon-button:hover,
@@ -1098,6 +1146,59 @@ function getStatusClass(status) {
   margin: 0;
   color: #1f2937;
   line-height: 1.55;
+}
+
+.detail-review-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 14px;
+  border: 1px solid #d8e8df;
+  border-radius: 7px;
+  background: #f4faf7;
+}
+
+.detail-review-panel > div {
+  display: grid;
+  gap: 3px;
+}
+
+.detail-review-label {
+  color: #6b7f76;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.detail-review-panel strong {
+  color: #2d6a4f;
+  font-size: 0.98rem;
+}
+
+.detail-review-panel small {
+  color: #718096;
+}
+
+.btn-review-detail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 16px;
+  color: #ffffff;
+  background: #4d7c6e;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.btn-review-detail:hover,
+.btn-review-detail:focus {
+  color: #ffffff;
+  background: #3f665b;
 }
 
 .form-grid {

@@ -3,6 +3,7 @@ import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { useGroupStore } from '@/stores/useGroupStore';
 import GroupCard from '@/components/ui/base/GroupCard.vue';
 import BasePagination from '@/components/ui/base/BasePagination.vue';
+import BaseModal from '@/components/ui/base/BaseModal.vue';
 import Swal from 'sweetalert2';
 
 const groupStore = useGroupStore();
@@ -14,15 +15,19 @@ const editingGroup = ref(null);
 const selectedGroupForMembers = ref(null);
 const isSubmitting = ref(false);
 const isAddingMembers = ref(false);
+const removingMemberId = ref('');
+const isLoadingGroupMembers = ref(false);
 const itemsPerPage = 6;
 
-const groupForm = reactive({
+const emptyGroupForm = {
   name: '',
   managerId: '',
   description: '',
   avatar: null,
   avatarPreview: ''
-});
+};
+
+const groupForm = reactive({ ...emptyGroupForm });
 
 const formErrors = reactive({
   name: '',
@@ -33,6 +38,42 @@ const formErrors = reactive({
 const memberForm = reactive({
   selectedIds: []
 });
+
+const notifySuccess = (title) => Swal.fire({
+  title,
+  icon: 'success',
+  timer: 1500,
+  showConfirmButton: false
+});
+
+const notifyError = (title, text) => Swal.fire({
+  title,
+  text,
+  icon: 'error',
+  confirmButtonColor: '#2D6A4F'
+});
+
+const firstArray = (source, keys) => keys.map((key) => source?.[key]).find(Array.isArray) || [];
+const toId = (value) => String(value ?? '');
+const getUserSource = (user) => user?.user || user?.staff?.user || user?.staff || user || {};
+const getUserId = (user) => user?.user?.id
+  ?? user?.staff?.user?.id
+  ?? user?.userId
+  ?? user?.staffId
+  ?? user?.user_id
+  ?? user?.staff_id
+  ?? user?.staff?.id
+  ?? user?.id;
+
+const uniqueUsers = (users) => {
+  const ids = new Set();
+  return users.filter((user) => {
+    const id = toId(getUserId(user));
+    if (!id || ids.has(id)) return false;
+    ids.add(id);
+    return true;
+  });
+};
 
 onMounted(async () => {
   await Promise.all([
@@ -70,6 +111,7 @@ const paginatedGroups = computed(() => {
 const modalTitle = computed(() => editingGroup.value ? 'Edit Group' : 'Create New Group');
 const submitLabel = computed(() => editingGroup.value ? 'Update Group' : 'Create Group');
 const selectedGroupName = computed(() => selectedGroupForMembers.value ? getGroupName(selectedGroupForMembers.value) : '');
+const memberModalTitle = computed(() => selectedGroupName.value ? `Manage Members - ${selectedGroupName.value}` : 'Manage Members');
 
 const handlePageChange = (page) => {
   currentPage.value = Math.min(Math.max(page, 1), totalPages.value);
@@ -77,12 +119,27 @@ const handlePageChange = (page) => {
 };
 
 const getUserName = (user) => {
-  return user.fullname || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Unnamed manager';
+  const source = getUserSource(user);
+  return source.fullname
+    || source.name
+    || `${source.firstName || ''} ${source.lastName || ''}`.trim()
+    || source.email
+    || 'Unnamed user';
 };
 
-const getGroupName = (group) => {
-  return String(group.name || group.groupName || group.group_name || '');
+const getUserAvatar = (user) => {
+  const source = getUserSource(user);
+  return source.avatar || source.photo || source.image || source.thumbnail || '';
 };
+
+const getUserContact = (user) => {
+  const source = getUserSource(user);
+  return source.email || source.phone || 'Staff';
+};
+
+function getGroupName(group) {
+  return String(group.name || group.groupName || group.group_name || '');
+}
 
 const getGroupImage = (group) => {
   return group.thumbnail || group.avatar || group.image || group.photo || '';
@@ -92,13 +149,13 @@ const getManagerId = (group) => {
   return group.managerId || group.manager?.id || group.manager_id || '';
 };
 
-const getManagerName = (group) => {
+function getManagerName(group) {
   return group.managerName
     || group.manager?.fullname
     || group.manager?.name
     || group.manager?.email
     || 'Unassigned';
-};
+}
 
 const getMembersCount = (group) => {
   if (typeof group.membersCount === 'number') return group.membersCount;
@@ -108,21 +165,32 @@ const getMembersCount = (group) => {
   return 0;
 };
 
-const getGroupMembers = (group) => {
-  if (Array.isArray(group.members)) return group.members;
-  if (Array.isArray(group.staffs)) return group.staffs;
-  if (Array.isArray(group.users)) return group.users;
-  return [];
-};
+const getGroupMembers = (group) => firstArray(group, ['members', 'staffs', 'users']);
 
 const getGroupMemberIds = (group) => {
-  return getGroupMembers(group).map((member) => String(member.id ?? member.userId ?? member.staffId));
+  return getGroupMembers(group).map((member) => toId(getUserId(member))).filter(Boolean);
 };
 
-const availableStaffs = computed(() => {
-  const existingIds = selectedGroupForMembers.value ? getGroupMemberIds(selectedGroupForMembers.value) : [];
-  return groupStore.staffs.filter((staff) => !existingIds.includes(String(staff.id)));
+const existingMemberIds = computed(() => selectedGroupForMembers.value ? getGroupMemberIds(selectedGroupForMembers.value) : []);
+const staffOptions = computed(() => {
+  const existingIds = existingMemberIds.value;
+  return uniqueUsers([...groupStore.staffs, ...getGroupMembers(selectedGroupForMembers.value)])
+    .sort((first, second) => {
+      const firstIsExisting = existingIds.includes(toId(getUserId(first)));
+      const secondIsExisting = existingIds.includes(toId(getUserId(second)));
+      return Number(secondIsExisting) - Number(firstIsExisting);
+    });
 });
+const newSelectedIds = computed(() => memberForm.selectedIds.filter((id) => !existingMemberIds.value.includes(String(id))));
+const addMembersLabel = computed(() => {
+  const count = newSelectedIds.value.length;
+  return count ? `Add ${count} Member${count > 1 ? 's' : ''}` : 'Add Members';
+});
+
+const isExistingMember = (staff) => existingMemberIds.value.includes(toId(getUserId(staff)));
+const toPayloadId = (id) => (Number.isNaN(Number(id)) ? id : Number(id));
+const isMemberModalBusy = computed(() => isLoadingGroupMembers.value || isAddingMembers.value || Boolean(removingMemberId.value));
+const isRemovingMember = (staff) => removingMemberId.value === toId(getUserId(staff));
 
 const formatDate = (date) => {
   if (!date) return '-';
@@ -141,11 +209,7 @@ const revokePreview = () => {
 
 const resetGroupForm = () => {
   revokePreview();
-  groupForm.name = '';
-  groupForm.managerId = '';
-  groupForm.description = '';
-  groupForm.avatar = null;
-  groupForm.avatarPreview = '';
+  Object.assign(groupForm, emptyGroupForm);
   clearFormErrors();
   editingGroup.value = null;
 };
@@ -171,22 +235,36 @@ const closeGroupModal = () => {
   resetGroupForm();
 };
 
-const openMembersModal = (group) => {
+const openMembersModal = async (group) => {
   selectedGroupForMembers.value = group;
-  memberForm.selectedIds = [];
+  memberForm.selectedIds = [...existingMemberIds.value];
   showMembersModal.value = true;
+  isLoadingGroupMembers.value = true;
+
+  const groupId = group.id;
+  const loadedGroup = await groupStore.fetchGroupWithMembers(groupId);
+
+  if (toId(selectedGroupForMembers.value?.id) !== toId(groupId)) {
+    return;
+  }
+
+  isLoadingGroupMembers.value = false;
+
+  if (loadedGroup) {
+    selectedGroupForMembers.value = loadedGroup;
+    memberForm.selectedIds = [...existingMemberIds.value];
+  } else {
+    notifyError('Load members failed', groupStore.error || 'Could not load group members. Please try again.');
+  }
 };
 
 const closeMembersModal = () => {
-  if (isAddingMembers.value) return;
+  if (isMemberModalBusy.value) return;
   showMembersModal.value = false;
   selectedGroupForMembers.value = null;
   memberForm.selectedIds = [];
+  removingMemberId.value = '';
 };
-
-const selectedManager = computed(() => {
-  return groupStore.managers.find((manager) => String(manager.id) === String(groupForm.managerId));
-});
 
 const clearFormErrors = () => {
   formErrors.name = '';
@@ -267,29 +345,19 @@ const handleSubmitGroup = async () => {
     const successTitle = editingGroup.value ? 'Group updated!' : 'Group created!';
     closeGroupModal();
     currentPage.value = 1;
-    Swal.fire({
-      title: successTitle,
-      icon: 'success',
-      timer: 1500,
-      showConfirmButton: false
-    });
+    notifySuccess(successTitle);
   } else {
-    Swal.fire({
-      title: editingGroup.value ? 'Update failed' : 'Create failed',
-      text: groupStore.error || 'Could not save group. Please try again.',
-      icon: 'error',
-      confirmButtonColor: '#2D6A4F'
-    });
+    notifyError(editingGroup.value ? 'Update failed' : 'Create failed', groupStore.error || 'Could not save group. Please try again.');
   }
 };
 
 const handleAddMembers = async () => {
   if (!selectedGroupForMembers.value) return;
 
-  if (memberForm.selectedIds.length === 0) {
+  if (newSelectedIds.value.length === 0) {
     Swal.fire({
-      title: 'No members selected',
-      text: 'Please select at least one staff member.',
+      title: 'No new members selected',
+      text: 'Please select at least one staff member who is not already in this group.',
       icon: 'warning',
       confirmButtonColor: '#2D6A4F'
     });
@@ -297,25 +365,61 @@ const handleAddMembers = async () => {
   }
 
   isAddingMembers.value = true;
-  const userIds = memberForm.selectedIds.map((id) => Number(id));
+  const userIds = newSelectedIds.value.map(toPayloadId);
   const success = await groupStore.addGroupMembers(selectedGroupForMembers.value.id, userIds);
   isAddingMembers.value = false;
 
   if (success) {
     closeMembersModal();
-    Swal.fire({
-      title: 'Members added!',
-      icon: 'success',
-      timer: 1500,
-      showConfirmButton: false
-    });
+    notifySuccess('Members added!');
   } else {
-    Swal.fire({
-      title: 'Add members failed',
-      text: groupStore.error || 'Could not add members. Please try again.',
-      icon: 'error',
-      confirmButtonColor: '#2D6A4F'
-    });
+    notifyError('Add members failed', groupStore.error || 'Could not add members. Please try again.');
+  }
+};
+
+const syncSelectedGroupForMembers = () => {
+  if (!selectedGroupForMembers.value) return;
+
+  const currentGroupId = selectedGroupForMembers.value.id;
+  const freshGroup = groupStore.groups.find((group) => String(group.id) === String(currentGroupId));
+
+  if (freshGroup) {
+    selectedGroupForMembers.value = freshGroup;
+  }
+};
+
+const handleRemoveMember = async (staff) => {
+  if (!selectedGroupForMembers.value) return;
+
+  const memberId = toId(getUserId(staff));
+  if (!memberId) {
+    notifyError('Remove member failed', 'Could not identify this staff member.');
+    return;
+  }
+
+  const result = await Swal.fire({
+    title: 'Remove member?',
+    text: `${getUserName(staff)} will be removed from ${selectedGroupName.value}.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#2D6A4F',
+    confirmButtonText: 'Yes, remove',
+    cancelButtonText: 'Cancel',
+    reverseButtons: true
+  });
+
+  if (!result.isConfirmed) return;
+
+  removingMemberId.value = memberId;
+  const success = await groupStore.removeGroupMember(selectedGroupForMembers.value.id, toPayloadId(memberId));
+  removingMemberId.value = '';
+
+  if (success) {
+    memberForm.selectedIds = memberForm.selectedIds.filter((id) => String(id) !== memberId);
+    syncSelectedGroupForMembers();
+    notifySuccess('Member removed!');
+  } else {
+    notifyError('Remove member failed', groupStore.error || 'Could not remove member. Please try again.');
   }
 };
 
@@ -323,19 +427,9 @@ const handleUploadThumbnail = async (group, file) => {
   const success = await groupStore.uploadGroupThumbnail(group.id, file);
 
   if (success) {
-    Swal.fire({
-      title: 'Thumbnail updated!',
-      icon: 'success',
-      timer: 1500,
-      showConfirmButton: false
-    });
+    notifySuccess('Thumbnail updated!');
   } else {
-    Swal.fire({
-      title: 'Upload failed',
-      text: groupStore.error || 'Could not upload thumbnail. Please try again.',
-      icon: 'error',
-      confirmButtonColor: '#2D6A4F'
-    });
+    notifyError('Upload failed', groupStore.error || 'Could not upload thumbnail. Please try again.');
   }
 };
 
@@ -354,7 +448,7 @@ const handleDelete = async (id) => {
   if (result.isConfirmed) {
     const success = await groupStore.deleteGroup(id);
     if (success) {
-      Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1500, showConfirmButton: false });
+      notifySuccess('Deleted!');
     }
   }
 };
@@ -433,225 +527,161 @@ const handleDelete = async (id) => {
       />
     </div>
 
-    <div v-if="showGroupModal" class="modal-backdrop-custom">
-      <div class="group-modal shadow-lg">
-        <div class="modal-header-panel d-flex justify-content-between align-items-center">
-          <h5 class="text-white fw-bold mb-0">{{ modalTitle }}</h5>
-          <button class="btn modal-close-btn" type="button" @click="closeGroupModal">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
-
-        <form class="modal-body-panel" @submit.prevent="handleSubmitGroup">
-          <div class="avatar-field mb-3">
-            <div class="avatar-preview bg-light">
-              <img v-if="groupForm.avatarPreview" :src="groupForm.avatarPreview" alt="Group avatar">
-              <i v-else class="bi bi-image text-muted"></i>
-            </div>
-            <div class="flex-grow-1">
-              <label for="groupAvatar" class="form-label fw-semibold">Avatar</label>
-              <input
-                id="groupAvatar"
-                type="file"
-                :class="['form-control bordered-field', { 'is-invalid': formErrors.avatar }]"
-                accept="image/*"
-                :disabled="isSubmitting"
-                @change="handleAvatarChange"
-              >
-              <div v-if="formErrors.avatar" class="invalid-feedback d-block">{{ formErrors.avatar }}</div>
-            </div>
+    <BaseModal :show="showGroupModal" :title="modalTitle" @close="closeGroupModal">
+      <form class="modal-form" @submit.prevent="handleSubmitGroup">
+        <div class="avatar-field mb-3">
+          <div class="avatar-preview bg-light">
+            <img v-if="groupForm.avatarPreview" :src="groupForm.avatarPreview" alt="Group avatar">
+            <i v-else class="bi bi-image text-muted"></i>
           </div>
-
-          <div class="mb-3">
-            <label for="groupName" class="form-label fw-semibold">Group Name *</label>
+          <div class="flex-grow-1">
+            <label for="groupAvatar" class="form-label fw-semibold">Avatar</label>
             <input
-              id="groupName"
-              v-model="groupForm.name"
-              type="text"
-              :class="['form-control form-control-lg bordered-field', { 'is-invalid': formErrors.name }]"
-              placeholder="Enter group name"
-              maxlength="100"
+              id="groupAvatar"
+              type="file"
+              :class="['form-control bordered-field', { 'is-invalid': formErrors.avatar }]"
+              accept="image/*"
               :disabled="isSubmitting"
-              @input="formErrors.name = ''"
+              @change="handleAvatarChange"
             >
-            <div class="d-flex justify-content-between mt-1">
-              <div v-if="formErrors.name" class="invalid-feedback d-block">{{ formErrors.name }}</div>
-              <small class="text-muted ms-auto">{{ groupForm.name.length }}/100</small>
-            </div>
+            <div v-if="formErrors.avatar" class="invalid-feedback d-block">{{ formErrors.avatar }}</div>
           </div>
-
-          <div class="mb-3">
-            <label for="managerId" class="form-label fw-semibold">Manager *</label>
-            <select
-              id="managerId"
-              v-model="groupForm.managerId"
-              :class="['form-select form-select-lg bordered-field', { 'is-invalid': formErrors.managerId }]"
-              :disabled="isSubmitting || groupStore.managersLoading"
-              @change="formErrors.managerId = ''"
-            >
-              <option value="" disabled>
-                {{ groupStore.managersLoading ? 'Loading managers...' : 'Select manager' }}
-              </option>
-              <option v-for="manager in groupStore.managers" :key="manager.id" :value="String(manager.id)">
-                {{ getUserName(manager) }}
-              </option>
-            </select>
-            <div v-if="formErrors.managerId" class="invalid-feedback d-block">{{ formErrors.managerId }}</div>
-          </div>
-
-          <div class="mb-4">
-            <label for="groupDescription" class="form-label fw-semibold">Description</label>
-            <textarea
-              id="groupDescription"
-              v-model="groupForm.description"
-              class="form-control bordered-field"
-              rows="3"
-              placeholder="Enter group description"
-              :disabled="isSubmitting"
-            ></textarea>
-          </div>
-
-          <div class="d-flex justify-content-end gap-3">
-            <button
-              type="button"
-              class="btn btn-secondary px-4"
-              :disabled="isSubmitting"
-              @click="closeGroupModal"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="btn btn-create px-4"
-              :disabled="isSubmitting"
-            >
-              <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
-              {{ submitLabel }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div v-if="showMembersModal" class="modal-backdrop-custom">
-      <div class="group-modal shadow-lg">
-        <div class="modal-header-panel d-flex justify-content-between align-items-center">
-          <div>
-            <h5 class="text-white fw-bold mb-0">Add Members</h5>
-            <p class="text-white-50 small mb-0">{{ selectedGroupName }}</p>
-          </div>
-          <button class="btn modal-close-btn" type="button" @click="closeMembersModal">
-            <i class="bi bi-x-lg"></i>
-          </button>
         </div>
 
-        <form class="modal-body-panel" @submit.prevent="handleAddMembers">
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Staff Members</label>
-            <div v-if="groupStore.staffsLoading" class="text-muted py-3">
-              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-              Loading staff...
-            </div>
+        <div class="mb-3">
+          <label for="groupName" class="form-label fw-semibold">Group Name *</label>
+          <input
+            id="groupName"
+            v-model="groupForm.name"
+            type="text"
+            :class="['form-control form-control-lg bordered-field', { 'is-invalid': formErrors.name }]"
+            placeholder="Enter group name"
+            maxlength="100"
+            :disabled="isSubmitting"
+            @input="formErrors.name = ''"
+          >
+          <div class="d-flex justify-content-between mt-1">
+            <div v-if="formErrors.name" class="invalid-feedback d-block">{{ formErrors.name }}</div>
+            <small class="text-muted ms-auto">{{ groupForm.name.length }}/100</small>
+          </div>
+        </div>
 
-            <div v-else-if="availableStaffs.length === 0" class="empty-members-state">
-              No available staff to add.
-            </div>
+        <div class="mb-3">
+          <label for="managerId" class="form-label fw-semibold">Manager *</label>
+          <select
+            id="managerId"
+            v-model="groupForm.managerId"
+            :class="['form-select form-select-lg bordered-field', { 'is-invalid': formErrors.managerId }]"
+            :disabled="isSubmitting || groupStore.managersLoading"
+            @change="formErrors.managerId = ''"
+          >
+            <option value="" disabled>
+              {{ groupStore.managersLoading ? 'Loading managers...' : 'Select manager' }}
+            </option>
+            <option v-for="manager in groupStore.managers" :key="manager.id" :value="String(manager.id)">
+              {{ getUserName(manager) }}
+            </option>
+          </select>
+          <div v-if="formErrors.managerId" class="invalid-feedback d-block">{{ formErrors.managerId }}</div>
+        </div>
 
-            <div v-else class="member-picker">
-              <label
-                v-for="staff in availableStaffs"
-                :key="staff.id"
-                class="member-option"
+        <div class="mb-4">
+          <label for="groupDescription" class="form-label fw-semibold">Description</label>
+          <textarea
+            id="groupDescription"
+            v-model="groupForm.description"
+            class="form-control bordered-field"
+            rows="3"
+            placeholder="Enter group description"
+            :disabled="isSubmitting"
+          ></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-3">
+          <button type="button" class="btn btn-secondary px-4" :disabled="isSubmitting" @click="closeGroupModal">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-create px-4" :disabled="isSubmitting">
+            <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+            {{ submitLabel }}
+          </button>
+        </div>
+      </form>
+    </BaseModal>
+
+    <BaseModal :show="showMembersModal" :title="memberModalTitle" @close="closeMembersModal">
+      <form class="modal-form" @submit.prevent="handleAddMembers">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Staff Members</label>
+          <div v-if="groupStore.staffsLoading || isLoadingGroupMembers" class="text-muted py-3">
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            {{ isLoadingGroupMembers ? 'Loading group members...' : 'Loading staff...' }}
+          </div>
+
+          <div v-else-if="staffOptions.length === 0" class="empty-members-state">
+            No staff found.
+          </div>
+
+          <div v-else class="member-picker">
+            <label
+              v-for="staff in staffOptions"
+              :key="toId(getUserId(staff))"
+              :class="['member-option', { 'is-existing': isExistingMember(staff) }]"
+            >
+              <input
+                v-model="memberForm.selectedIds"
+                class="form-check-input"
+                type="checkbox"
+                :value="toId(getUserId(staff))"
+                :disabled="isMemberModalBusy || isExistingMember(staff)"
               >
-                <input
-                  v-model="memberForm.selectedIds"
-                  class="form-check-input"
-                  type="checkbox"
-                  :value="String(staff.id)"
-                  :disabled="isAddingMembers"
-                >
-                <span class="member-avatar">
-                  <img v-if="staff.avatar" :src="staff.avatar" alt="">
-                  <span v-else>{{ getUserName(staff).charAt(0).toUpperCase() }}</span>
-                </span>
-                <span class="member-info">
+              <span class="member-avatar">
+                <img v-if="getUserAvatar(staff)" :src="getUserAvatar(staff)" alt="">
+                <span v-else>{{ getUserName(staff).charAt(0).toUpperCase() }}</span>
+              </span>
+              <span class="member-info">
+                <span class="member-title-row">
                   <span class="member-name">{{ getUserName(staff) }}</span>
-                  <span class="member-email">{{ staff.email || staff.phone || 'Staff' }}</span>
+                  <span v-if="isExistingMember(staff)" class="member-badge">In group</span>
                 </span>
-              </label>
-            </div>
+                <span class="member-email">{{ getUserContact(staff) }}</span>
+              </span>
+              <button
+                v-if="isExistingMember(staff)"
+                class="btn member-remove-btn"
+                type="button"
+                title="Remove member"
+                :disabled="isMemberModalBusy"
+                @click.prevent.stop="handleRemoveMember(staff)"
+              >
+                <span v-if="isRemovingMember(staff)" class="spinner-border spinner-border-sm" role="status"></span>
+                <i v-else class="bi bi-trash"></i>
+              </button>
+            </label>
           </div>
+        </div>
 
-          <div class="d-flex justify-content-end gap-3">
-            <button
-              type="button"
-              class="btn btn-secondary px-4"
-              :disabled="isAddingMembers"
-              @click="closeMembersModal"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="btn btn-create px-4"
-              :disabled="isAddingMembers || availableStaffs.length === 0"
-            >
-              <span v-if="isAddingMembers" class="spinner-border spinner-border-sm me-2" role="status"></span>
-              Add Members
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div class="d-flex justify-content-end gap-3">
+          <button type="button" class="btn btn-secondary px-4" :disabled="isMemberModalBusy" @click="closeMembersModal">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-create px-4" :disabled="isMemberModalBusy || newSelectedIds.length === 0">
+            <span v-if="isAddingMembers" class="spinner-border spinner-border-sm me-2" role="status"></span>
+            {{ addMembersLabel }}
+          </button>
+        </div>
+      </form>
+    </BaseModal>
   </div>
 </template>
 
 <style scoped>
-.modal-backdrop-custom {
-  position: fixed;
-  inset: 0;
-  z-index: 1050;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 48px 16px 24px;
-  overflow-y: auto;
-  background: rgba(0, 0, 0, 0.42);
-}
-
 .group-card-grid {
   margin-top: 1.25rem;
 }
 
-.group-modal {
-  width: min(520px, 100%);
-  border-radius: 6px;
-  overflow: hidden;
-  background: #ffffff;
-}
-
-.modal-header-panel {
-  padding: 22px 24px;
-  background: #4d7c6e;
-}
-
-.modal-body-panel {
-  padding: 24px;
-  background: #ffffff;
-}
-
-.modal-body-panel .form-label {
+.modal-form .form-label {
   color: #1f2937;
-}
-
-.modal-close-btn {
-  color: #ffffff;
-  border: 0;
-}
-
-.modal-close-btn:hover,
-.modal-close-btn:focus {
-  color: #e9f5ef;
 }
 
 .avatar-field {
@@ -680,8 +710,8 @@ const handleDelete = async (id) => {
   font-size: 2rem;
 }
 
-.modal-body-panel .form-control,
-.modal-body-panel .form-select {
+.modal-form .form-control,
+.modal-form .form-select {
   border: 1px solid #5d9aa6;
   border-radius: 6px;
 }
@@ -726,6 +756,16 @@ const handleDelete = async (id) => {
   background: #f4faf9;
 }
 
+.member-option.is-existing {
+  cursor: default;
+  background: #f4faf9;
+  border-color: #b7d6d0;
+}
+
+.member-option .form-check-input:disabled {
+  opacity: 1;
+}
+
 .member-avatar {
   width: 38px;
   height: 38px;
@@ -747,12 +787,33 @@ const handleDelete = async (id) => {
 
 .member-info {
   display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.member-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
 }
 
 .member-name {
+  overflow: hidden;
   color: #1f2937;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-badge {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #2d6a4f;
+  background: #e5f4ed;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .member-email {
@@ -761,6 +822,38 @@ const handleDelete = async (id) => {
   font-size: 0.84rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.member-remove-btn {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #f3c4c4;
+  border-radius: 6px;
+  color: #b42318;
+  background: #fff5f5;
+  line-height: 1;
+}
+
+.member-remove-btn .bi,
+.member-remove-btn .spinner-border {
+  display: block;
+  grid-area: 1 / 1;
+  line-height: 1;
+}
+
+.member-remove-btn:hover:not(:disabled),
+.member-remove-btn:focus:not(:disabled) {
+  color: #ffffff;
+  background: #dc3545;
+  border-color: #dc3545;
+}
+
+.member-remove-btn:disabled {
+  opacity: 0.7;
 }
 
 .empty-members-state {
@@ -791,11 +884,6 @@ const handleDelete = async (id) => {
 }
 
 @media (max-width: 575.98px) {
-  .modal-backdrop-custom {
-    align-items: center;
-    padding-top: 24px;
-  }
-
   .avatar-field {
     align-items: stretch;
     flex-direction: column;
