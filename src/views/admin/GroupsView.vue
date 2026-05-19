@@ -468,7 +468,7 @@ const handleDelete = async (id) => {
         style="background-color: #2D6A4F; border: none;"
         @click="openCreateModal"
       >
-        <i class="bi bi-plus-lg"></i> Create Group
+        <i class="bi bi-plus-lg"></i> បង្កើតក្រុមថ្មី
       </button>
     </div>
 
