@@ -1,9 +1,9 @@
 <script setup>
 import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { useGroupStore } from '@/stores/useGroupStore';
-import GroupCard from '@/components/ui/base/GroupCard.vue';
 import BasePagination from '@/components/ui/base/BasePagination.vue';
 import BaseModal from '@/components/ui/base/BaseModal.vue';
+import api from '@/api/api';
 import Swal from 'sweetalert2';
 
 const groupStore = useGroupStore();
@@ -16,6 +16,8 @@ const selectedGroupForMembers = ref(null);
 const isSubmitting = ref(false);
 const isAddingMembers = ref(false);
 const removingMemberId = ref('');
+const uploadingThumbnailId = ref('');
+const deletingThumbnailId = ref('');
 const isLoadingGroupMembers = ref(false);
 const itemsPerPage = 6;
 
@@ -193,6 +195,8 @@ const isExistingMember = (staff) => existingMemberIds.value.includes(toId(getUse
 const toPayloadId = (id) => (Number.isNaN(Number(id)) ? id : Number(id));
 const isMemberModalBusy = computed(() => isLoadingGroupMembers.value || isAddingMembers.value || Boolean(removingMemberId.value));
 const isRemovingMember = (staff) => removingMemberId.value === toId(getUserId(staff));
+const isThumbnailUploading = (group) => uploadingThumbnailId.value === toId(group?.id);
+const isThumbnailDeleting = (group) => deletingThumbnailId.value === toId(group?.id);
 
 const formatDate = (date) => {
   if (!date) return '-';
@@ -426,12 +430,52 @@ const handleRemoveMember = async (staff) => {
 };
 
 const handleUploadThumbnail = async (group, file) => {
+  uploadingThumbnailId.value = toId(group.id);
   const success = await groupStore.uploadGroupThumbnail(group.id, file);
+  uploadingThumbnailId.value = '';
 
   if (success) {
     notifySuccess('Thumbnail updated!');
   } else {
     notifyError('Upload failed', groupStore.error || 'Could not upload thumbnail. Please try again.');
+  }
+};
+
+const handleGroupThumbnailChange = async (group, event) => {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+
+  if (!file) return;
+  await handleUploadThumbnail(group, file);
+};
+
+const handleDeleteThumbnail = async (group) => {
+  if (!getGroupImage(group) || isThumbnailDeleting(group)) return;
+
+  const result = await Swal.fire({
+    title: 'លុបរូបភាពក្រុម?',
+    text: 'រូបភាព thumbnail នេះនឹងត្រូវបានដកចេញពីក្រុម។',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'លុប',
+    cancelButtonText: 'បោះបង់',
+    reverseButtons: true
+  });
+
+  if (!result.isConfirmed) return;
+
+  deletingThumbnailId.value = toId(group.id);
+
+  try {
+    await api.delete(`/groups/${group.id}/thumbnail`);
+    await groupStore.fetchGroups();
+    notifySuccess('Thumbnail deleted!');
+  } catch (error) {
+    notifyError('Delete thumbnail failed', error.response?.data?.message || 'Could not delete thumbnail. Please try again.');
+  } finally {
+    deletingThumbnailId.value = '';
   }
 };
 
@@ -460,8 +504,8 @@ const handleDelete = async (id) => {
   <div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 class="fw-bold">Group Management</h2>
-        <p class="text-muted">Manage all groups in the system</p>
+        <h2 class="fw-bold">គ្រប់គ្រងក្រុម</h2>
+        <p class="text-muted">គ្រប់គ្រងក្រុមទាំងអស់ក្នុងប្រព័ន្ធ</p>
       </div>
       <button
         class="btn btn-success shadow-sm"
@@ -472,22 +516,21 @@ const handleDelete = async (id) => {
       </button>
     </div>
 
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="input-group bg-white shadow-sm rounded">
-          <span class="input-group-text bg-white border-0 ps-3">
-            <i class="bi bi-search text-muted"></i>
-          </span>
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="form-control border-0 py-2"
-            placeholder="Search groups by name, manager, or description..."
-            @input="currentPage = 1"
-          >
-        </div>
+    <section class="group-toolbar-card mb-4" aria-label="តម្រងក្រុម">
+      <label class="group-search-control">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="ស្វែងរកតាមឈ្មោះក្រុម អ្នកគ្រប់គ្រង..."
+          @input="currentPage = 1"
+        >
+      </label>
+
+      <div class="group-total-pill">
+        សរុប: {{ filteredGroups.length }} ក្រុម
       </div>
-    </div>
+    </section>
 
     <div class="row group-card-grid">
       <div v-if="groupStore.loading" class="text-center py-5">
@@ -501,22 +544,77 @@ const handleDelete = async (id) => {
           :key="group.id"
           class="col-md-6 col-lg-4 mb-4"
         >
-          <GroupCard
-            :thumbnail="getGroupImage(group)"
-            :name="getGroupName(group) || 'Untitled Group'"
-            :description="group.description"
-            :manager-name="getManagerName(group)"
-            :members-count="getMembersCount(group)"
-            :created-at="formatDate(group.createdAt)"
-            @members="openMembersModal(group)"
-            @edit="openEditModal(group)"
-            @delete="handleDelete(group.id)"
-            @upload-thumbnail="handleUploadThumbnail(group, $event)"
-          />
+          <article class="admin-group-card">
+            <div class="admin-group-thumbnail">
+              <img v-if="getGroupImage(group)" :src="getGroupImage(group)" alt="Group thumbnail">
+              <div v-else class="thumbnail-placeholder">
+                <i class="bi bi-image" aria-hidden="true"></i>
+              </div>
+
+              <div class="thumbnail-actions">
+                <label
+                  :for="`group-thumbnail-${group.id}`"
+                  class="thumbnail-icon-btn thumbnail-upload-btn"
+                  title="ប្ដូររូបភាព"
+                  aria-label="ប្ដូររូបភាព"
+                >
+                  <span v-if="isThumbnailUploading(group)" class="spinner-border spinner-border-sm" role="status"></span>
+                  <i v-else class="bi bi-upload" aria-hidden="true"></i>
+                </label>
+                <input
+                  :id="`group-thumbnail-${group.id}`"
+                  type="file"
+                  class="d-none"
+                  accept="image/*"
+                  :disabled="isThumbnailUploading(group) || isThumbnailDeleting(group)"
+                  @change="handleGroupThumbnailChange(group, $event)"
+                >
+
+                <button
+                  v-if="getGroupImage(group)"
+                  class="thumbnail-icon-btn thumbnail-delete-btn"
+                  type="button"
+                  title="លុបរូបភាព"
+                  aria-label="លុបរូបភាព"
+                  :disabled="isThumbnailUploading(group) || isThumbnailDeleting(group)"
+                  @click="handleDeleteThumbnail(group)"
+                >
+                  <span v-if="isThumbnailDeleting(group)" class="spinner-border spinner-border-sm" role="status"></span>
+                  <i v-else class="bi bi-trash3" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="admin-group-body">
+              <h5>{{ getGroupName(group) || 'ក្រុមគ្មានឈ្មោះ' }}</h5>
+              <p v-if="group.description" class="admin-group-description">{{ group.description }}</p>
+              <p class="admin-group-meta">
+                អ្នកគ្រប់គ្រង: <span>{{ getManagerName(group) }}</span>
+              </p>
+              <p class="admin-group-meta">
+                <i class="bi bi-people me-1" aria-hidden="true"></i>{{ getMembersCount(group) }} សមាជិក
+              </p>
+              <p class="admin-group-date">បានបង្កើត: {{ formatDate(group.createdAt) }}</p>
+            </div>
+
+            <div class="admin-group-footer">
+              <button class="btn group-members-btn" type="button" @click="openMembersModal(group)">
+                <i class="bi bi-people me-1" aria-hidden="true"></i> សមាជិក
+              </button>
+              <div class="group-card-actions">
+                <button class="group-action-btn edit-action" type="button" title="កែប្រែ" @click="openEditModal(group)">
+                  <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                </button>
+                <button class="group-action-btn delete-action" type="button" title="លុប" @click="handleDelete(group.id)">
+                  <i class="bi bi-trash3" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          </article>
         </div>
 
         <div v-if="filteredGroups.length === 0" class="col-12 text-center py-5">
-          <p class="text-muted">No groups found.</p>
+          <p class="text-muted">រកមិនឃើញក្រុមទេ។</p>
         </div>
       </template>
     </div>
@@ -678,8 +776,240 @@ const handleDelete = async (id) => {
 </template>
 
 <style scoped>
+.group-toolbar-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid #e4eaee;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.group-search-control {
+  width: min(480px, 100%);
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+  border: 1px solid #dde5ea;
+  border-radius: 9px;
+  color: #5f6b76;
+  background: #f8fafb;
+}
+
+.group-search-control .bi {
+  font-size: 1.25rem;
+}
+
+.group-search-control input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #1f2937;
+  background: transparent;
+}
+
+.group-search-control input::placeholder {
+  color: #7d8996;
+}
+
+.group-total-pill {
+  flex: 0 0 auto;
+  padding: 8px 20px;
+  border: 1px solid #d9e2e8;
+  border-radius: 999px;
+  color: #64748b;
+  background: #fbfdfe;
+  font-size: 0.92rem;
+}
+
 .group-card-grid {
   margin-top: 1.25rem;
+}
+
+.admin-group-card {
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #eef2f4;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
+}
+
+.admin-group-thumbnail {
+  position: relative;
+  height: 168px;
+  overflow: hidden;
+  background: #f3f6f7;
+}
+
+.admin-group-thumbnail img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.thumbnail-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #8a98a6;
+}
+
+.thumbnail-placeholder .bi {
+  font-size: 3rem;
+}
+
+.thumbnail-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.thumbnail-icon-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.14);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.thumbnail-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.thumbnail-upload-btn {
+  color: #2d6a4f;
+}
+
+.thumbnail-delete-btn {
+  color: #dc3545;
+}
+
+.thumbnail-delete-btn:hover:not(:disabled),
+.thumbnail-delete-btn:focus:not(:disabled) {
+  color: #ffffff;
+  background: #dc3545;
+  border-color: #dc3545;
+}
+
+.thumbnail-upload-btn:hover,
+.thumbnail-upload-btn:focus {
+  color: #ffffff;
+  background: #4d7c6e;
+  border-color: #4d7c6e;
+}
+
+.thumbnail-icon-btn .spinner-border {
+  width: 1rem;
+  height: 1rem;
+}
+
+.admin-group-body {
+  padding: 18px 18px 6px;
+}
+
+.admin-group-body h5 {
+  margin: 0 0 8px;
+  color: #1f2937;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.admin-group-description {
+  display: -webkit-box;
+  min-height: 39px;
+  margin: 0 0 10px;
+  overflow: hidden;
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.admin-group-meta,
+.admin-group-date {
+  margin: 0 0 6px;
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+.admin-group-meta span {
+  color: #4b5563;
+}
+
+.admin-group-date {
+  margin-bottom: 0;
+  font-size: 0.8rem;
+}
+
+.admin-group-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px 18px 18px;
+  padding-top: 14px;
+  border-top: 1px solid #edf2f4;
+}
+
+.group-members-btn {
+  flex: 1 1 auto;
+  color: #4d7c6e;
+  background: #eef6f5;
+  border: 0;
+  font-weight: 700;
+}
+
+.group-members-btn:hover,
+.group-members-btn:focus {
+  color: #3f665b;
+  background: #e1efec;
+}
+
+.group-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.group-action-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  line-height: 1;
+}
+
+.edit-action {
+  color: #2d7a62;
+}
+
+.delete-action {
+  color: #dc3545;
+}
+
+.group-action-btn:hover,
+.group-action-btn:focus {
+  background: #f3f6f7;
 }
 
 .modal-form .form-label {
@@ -886,6 +1216,19 @@ const handleDelete = async (id) => {
 }
 
 @media (max-width: 575.98px) {
+  .group-toolbar-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .group-search-control {
+    width: 100%;
+  }
+
+  .group-total-pill {
+    align-self: flex-start;
+  }
+
   .avatar-field {
     align-items: stretch;
     flex-direction: column;
