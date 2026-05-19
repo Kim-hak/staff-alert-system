@@ -150,7 +150,7 @@ const router = createRouter({
   children: [
     { path: "dashboard", name: "staffDashboard", component: StaffDashboardView },
     { path: "salary", name: "staffSalary", component: SalaryView },
-    { path: "notifications", name: "staffNotifications", component: NotificationsView },
+  
     { path: "profile", name: "staffProfile", component: ProfileView },
     { path: "telegram", name: "staffTelegram", component: TelegramView },
   ],
